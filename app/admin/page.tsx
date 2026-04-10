@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { AddConnectionOverlay } from "@/components/overlays/add-connection-overlay";
+import { useOverlay } from "@/components/overlays/overlay-provider";
 import { IntegrationsManager } from "@/components/settings/integrations-manager";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,9 +19,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSession } from "@/lib/auth-client";
 
 export default function AdminPage() {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
   const [filter, setFilter] = useState("");
+  const { push } = useOverlay();
+
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.replace("/");
+    }
+  }, [session, isPending, router]);
+
+  if (isPending) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-muted-foreground text-sm">Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return null;
+  }
+
+  const handleAddConnection = () => {
+    push(AddConnectionOverlay, {
+      onSuccess: () => {
+        toast.success("Connexion ajoutée avec succès");
+      },
+    });
+  };
 
   return (
     <div className="container mx-auto max-w-5xl p-6">
@@ -40,10 +75,18 @@ export default function AdminPage() {
         <TabsContent value="connections">
           <Card>
             <CardHeader>
-              <CardTitle>Gestion des connexions</CardTitle>
-              <CardDescription>
-                Configurez et testez les connexions aux services externes.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Gestion des connexions</CardTitle>
+                  <CardDescription>
+                    Configurez et testez les connexions aux services externes.
+                  </CardDescription>
+                </div>
+                <Button onClick={handleAddConnection}>
+                  <Plus className="mr-2 size-4" />
+                  Nouvelle connexion
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="mb-4">

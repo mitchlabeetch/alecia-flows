@@ -2,7 +2,9 @@ import "server-only";
 
 import { fetchCredentials } from "@/lib/credential-fetcher";
 import { type StepInput, withStepLogging } from "@/lib/steps/step-handler";
+import { escapeHtml } from "@/lib/utils/html";
 import type { Office365Credentials } from "../credentials";
+import { getToken } from "../lib/get-token";
 
 type OneNoteResult =
   | {
@@ -11,7 +13,6 @@ type OneNoteResult =
     }
   | { success: false; error: { message: string } };
 
-type TokenResponse = { access_token: string };
 type OneNoteItem = { id: string; displayName: string };
 type OneNotePage = {
   id: string;
@@ -29,29 +30,6 @@ export type CreateOneNotePageCoreInput = {
 
 export type CreateOneNotePageInput = StepInput &
   CreateOneNotePageCoreInput & { integrationId?: string };
-
-async function getToken(credentials: Office365Credentials): Promise<string> {
-  const {
-    OFFICE365_TENANT_ID: tenantId,
-    OFFICE365_CLIENT_ID: clientId,
-    OFFICE365_CLIENT_SECRET: clientSecret,
-  } = credentials;
-  const response = await fetch(
-    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: clientId ?? "",
-        client_secret: clientSecret ?? "",
-        scope: "https://graph.microsoft.com/.default",
-      }),
-    }
-  );
-  const data = (await response.json()) as TokenResponse;
-  return data.access_token;
-}
 
 async function getOrCreateNotebook(
   token: string,
@@ -133,16 +111,9 @@ async function stepHandler(
       input.sectionName
     );
 
-    const escapeHtml = (str: string) =>
-      str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
     const safeTitle = escapeHtml(input.pageTitle);
-    const bodyContent =
-      input.pageContent || `<h1>${safeTitle}</h1>`;
+    // pageContent is trusted workflow template output; only the title is escaped
+    const bodyContent = input.pageContent || `<h1>${safeTitle}</h1>`;
     const htmlContent = [
       "<!DOCTYPE html><html><head>",
       `<title>${safeTitle}</title>`,

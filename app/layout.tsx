@@ -45,7 +45,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => (
-  <html lang="en" suppressHydrationWarning>
+  <html lang="fr" suppressHydrationWarning>
     <body className={cn(sans.variable, mono.variable, "antialiased")}>
       <ThemeProvider
         attribute="class"
