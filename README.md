@@ -153,11 +153,11 @@ The generated code includes:
 ### Workflow Execution
 
 - `POST /api/workflow/{id}/execute` - Execute a workflow
-- `POST /api/workflows/{id}/webhook` - Trigger a webhook workflow with `Authorization: Bearer <api-key>`
+- `POST /api/workflows/{id}/webhook` - Trigger a webhook workflow with `Authorization: Bearer <api-key>`, `X-Webhook-Timestamp`, and `X-Webhook-Signature`
 - `GET /api/workflows/{id}/executions` - Get execution history
 - `GET /api/workflows/executions/{executionId}/logs` - Get detailed execution logs
 
-Webhook note: the API key currently acts as the webhook secret. Treat it like a secret token and keep it private.
+Webhook note: the API key currently acts as the webhook secret. Sign the raw request body as `sha256=<hmac(timestamp.body)>`, where `timestamp` is the `X-Webhook-Timestamp` value in milliseconds, and keep the API key private.
 
 ### Code Generation
 
@@ -207,6 +207,7 @@ Integrations are provided through the plugin system in `plugins/`.
 - Configure credentials from the app&apos;s Integrations UI
 - Use plugin actions in the workflow builder action picker
 - Run `pnpm discover-plugins` after adding or changing plugins
+- Generated registries in `lib/` are discovery output; do not maintain a manual step registry in `lib/steps`
 - Access backend endpoints from the frontend with `import { api } from "@/lib/api-client"`
 
 Examples:

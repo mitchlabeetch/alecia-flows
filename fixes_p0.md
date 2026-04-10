@@ -711,3 +711,76 @@ if (!timestamp || Math.abs(now - Number.parseInt(timestamp)) > maxAge) {
 8. **P0-3**: Fix CI/CD Build Pipeline - Build failures on fresh clones
 
 All P0 items should be addressed before considering P1-P3 items.
+
+---
+
+## Implementation Progress Log
+
+### 2026-04-10
+
+- Audited every P0 item against the current repository state before changing code.
+- Baseline validation before edits:
+  - `pnpm type-check`: passed after enabling `pnpm` with `corepack`
+  - `pnpm fix`: failed on pre-existing Ultracite violations outside this task
+  - `pnpm build`: failed in this sandbox because `next/font/google` could not fetch Geist fonts
+  - `pnpm test:e2e`: failed in this sandbox because Playwright browsers were not installed
+
+#### Completed fixes and improvements
+
+1. **P0-1 Auto-save sentinel**
+   - Kept the shared sentinel centralized in `lib/workflows/constants.ts`.
+   - Added explicit documentation for the internal auto-save workflow sentinel.
+   - Added legacy compatibility for `"__current__"` so older records are still hidden safely without depending on a one-off database migration.
+
+2. **P0-2 Dead step registry**
+   - Re-verified that the repository does not contain the old manual `lib/steps/index.ts` registry.
+   - Confirmed the generated `lib/step-registry.ts` is the active registry source.
+   - Added README guidance that generated registries in `lib/` should not be maintained manually.
+
+3. **P0-3 CI/CD build pipeline**
+   - Updated `package.json` so `pnpm type-check`, `pnpm check`, and `pnpm fix` all run `pnpm discover-plugins` first.
+   - This closes the fresh-clone mismatch between generated plugin files and direct developer scripts.
+
+4. **P0-4 Anonymous auth hardening**
+   - Confirmed the API key route was already using the persisted `users.isAnonymous` flag.
+   - Removed the remaining fragile UI checks based on `"Anonymous"` and `temp-` email prefixes from `components/workflows/user-menu.tsx`.
+   - The user menu now uses persisted user metadata from `/api/user` instead of string matching.
+
+5. **P0-5 Admin route**
+   - Confirmed the admin page is already protected server-side in `app/admin/page.tsx`.
+   - No additional code change was required for this item during this pass.
+
+6. **P0-6 500-response sanitization**
+   - Replaced remaining client-facing `error.message` leaks in API routes that still exposed internal exception text.
+   - Sanitized both the live workflow download route and the generated download template API route so internal failures no longer leak raw exception messages to clients.
+
+7. **P0-7 Rate limiting**
+   - Confirmed rate limiting already exists for AI generation, workflow execution, and webhook execution through `lib/rate-limit.ts`.
+   - No additional code change was required for this item during this pass.
+
+8. **P0-8 Webhook security**
+   - Added centralized webhook signing helpers in `lib/webhook/signature.ts`.
+   - Hardened `app/api/workflows/[workflowId]/webhook/route.ts` to require:
+     - `Authorization: Bearer <api-key>`
+     - `X-Webhook-Timestamp`
+     - `X-Webhook-Signature`
+   - Added HMAC SHA-256 verification over `timestamp.body`.
+   - Added timing-safe comparison for signature checks.
+   - Added timestamp freshness validation to reduce replay risk.
+   - Updated README webhook documentation to describe the required headers and signing format.
+
+#### Post-change validation
+
+- `pnpm type-check`: passed
+- Targeted `pnpm exec ultracite check ...changed files...`: passed
+- `pnpm fix`: still fails because of pre-existing repository-wide Ultracite issues outside this task
+- `pnpm check`: still fails because of the same pre-existing repository-wide Ultracite issues outside this task
+- `pnpm build`: still fails in this sandbox because `next/font/google` cannot fetch Geist fonts during production build
+- `pnpm exec playwright install chromium`: passed
+- `pnpm test:e2e`: passed (`7 passed`)
+
+#### Notes on outdated guidance discovered during implementation
+
+- `app/api/workflows/current/route.ts` no longer exists in the current codebase.
+- The old manual step registry described in P0-2 is already gone in the current codebase.
+- The anonymous-user API key protection, admin server-side guard, and rate limiting work were already partially or fully completed before this task started.

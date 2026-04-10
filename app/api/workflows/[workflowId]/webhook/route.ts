@@ -3,20 +3,26 @@ import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { start } from "workflow/api";
 import { internalServerError } from "@/lib/api/errors";
-import { readValidatedJson, webhookPayloadSchema } from "@/lib/api/validation";
+import { webhookPayloadSchema } from "@/lib/api/validation";
 import { db } from "@/lib/db";
 import { validateWorkflowIntegrations } from "@/lib/db/integrations";
 import { apiKeys, workflowExecutions, workflows } from "@/lib/db/schema";
 import { logger } from "@/lib/logger";
 import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
+import {
+  isWebhookTimestampFresh,
+  verifyWebhookSignature,
+  WEBHOOK_SIGNATURE_HEADER,
+  WEBHOOK_TIMESTAMP_HEADER,
+} from "@/lib/webhook/signature";
 import { executeWorkflow } from "@/lib/workflow-executor.workflow";
 import type { WorkflowEdge, WorkflowNode } from "@/lib/workflow-store";
 
-// Validate API key and return the user ID if valid
-async function validateApiKey(
-  authHeader: string | null,
-  workflowUserId: string
-): Promise<{ valid: boolean; error?: string; statusCode?: number }> {
+type ExtractApiKeyResult =
+  | { valid: true; key: string }
+  | { valid: false; error: string; statusCode: number };
+
+function extractApiKey(authHeader: string | null): ExtractApiKeyResult {
   if (!authHeader) {
     return {
       valid: false,
@@ -25,7 +31,6 @@ async function validateApiKey(
     };
   }
 
-  // Support "Bearer <key>" format
   const key = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7)
     : authHeader;
@@ -34,24 +39,96 @@ async function validateApiKey(
     return { valid: false, error: "Invalid API key format", statusCode: 401 };
   }
 
+  return { valid: true, key };
+}
+
+function validateWebhookPayload(rawBody: string) {
+  const parsedBody = rawBody.trim() === "" ? {} : JSON.parse(rawBody);
+  return webhookPayloadSchema.safeParse(parsedBody);
+}
+
+async function validateSignedWebhookRequest(options: {
+  clientIp: string;
+  request: Request;
+  secret: string;
+  workflowId: string;
+}): Promise<
+  | { success: true; rawBody: string }
+  | { success: false; response: NextResponse }
+> {
+  const timestamp = options.request.headers.get(WEBHOOK_TIMESTAMP_HEADER);
+  const signature = options.request.headers.get(WEBHOOK_SIGNATURE_HEADER);
+
+  if (!(timestamp && signature)) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        {
+          error:
+            "Missing webhook signature headers. Provide X-Webhook-Timestamp and X-Webhook-Signature.",
+        },
+        { status: 401, headers: corsHeaders }
+      ),
+    };
+  }
+
+  if (!isWebhookTimestampFresh(timestamp)) {
+    logger.warn("[Webhook] Rejected request with stale timestamp", {
+      clientIp: options.clientIp,
+      timestamp,
+      workflowId: options.workflowId,
+    });
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: "Webhook timestamp is invalid or expired" },
+        { status: 401, headers: corsHeaders }
+      ),
+    };
+  }
+
+  const rawBody = await options.request.text();
+
+  if (!verifyWebhookSignature(rawBody, timestamp, signature, options.secret)) {
+    logger.warn("[Webhook] Invalid signature", {
+      clientIp: options.clientIp,
+      workflowId: options.workflowId,
+    });
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401, headers: corsHeaders }
+      ),
+    };
+  }
+
+  return { success: true, rawBody };
+}
+
+// Validate API key and return the user ID if valid
+async function validateApiKey(
+  apiKey: string,
+  workflowUserId: string
+): Promise<{ valid: boolean; error?: string; statusCode?: number }> {
   // Hash the key to compare with stored hash
-  const keyHash = createHash("sha256").update(key).digest("hex");
+  const keyHash = createHash("sha256").update(apiKey).digest("hex");
 
   // Find the API key in the database
-  const apiKey = await db.query.apiKeys.findFirst({
+  const storedApiKey = await db.query.apiKeys.findFirst({
     where: eq(apiKeys.keyHash, keyHash),
   });
 
-  if (!apiKey) {
+  if (!storedApiKey) {
     return { valid: false, error: "Invalid API key", statusCode: 401 };
   }
 
-  if (apiKey.expiresAt && apiKey.expiresAt <= new Date()) {
+  if (storedApiKey.expiresAt && storedApiKey.expiresAt <= new Date()) {
     return { valid: false, error: "API key has expired", statusCode: 401 };
   }
 
   // Verify the API key belongs to the workflow owner
-  if (apiKey.userId !== workflowUserId) {
+  if (storedApiKey.userId !== workflowUserId) {
     return {
       valid: false,
       error: "You do not have permission to run this workflow",
@@ -62,7 +139,7 @@ async function validateApiKey(
   // Update last used timestamp (don't await, fire and forget)
   db.update(apiKeys)
     .set({ lastUsedAt: new Date() })
-    .where(eq(apiKeys.id, apiKey.id))
+    .where(eq(apiKeys.id, storedApiKey.id))
     .catch(() => {
       // Fire and forget - ignore errors
     });
@@ -73,7 +150,8 @@ async function validateApiKey(
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Webhook-Signature, X-Webhook-Timestamp",
 };
 
 // biome-ignore lint/nursery/useMaxParams: Background execution requires all workflow context
@@ -164,9 +242,19 @@ export async function POST(
       );
     }
 
+    const extractedApiKey = extractApiKey(request.headers.get("Authorization"));
+    if (!extractedApiKey.valid) {
+      return NextResponse.json(
+        { error: extractedApiKey.error },
+        { status: extractedApiKey.statusCode, headers: corsHeaders }
+      );
+    }
+
     // Validate API key - must belong to the workflow owner
-    const authHeader = request.headers.get("Authorization");
-    const apiKeyValidation = await validateApiKey(authHeader, workflow.userId);
+    const apiKeyValidation = await validateApiKey(
+      extractedApiKey.key,
+      workflow.userId
+    );
 
     if (!apiKeyValidation.valid) {
       return NextResponse.json(
@@ -174,6 +262,19 @@ export async function POST(
         { status: apiKeyValidation.statusCode || 401, headers: corsHeaders }
       );
     }
+
+    const signedWebhookRequest = await validateSignedWebhookRequest({
+      clientIp,
+      request,
+      secret: extractedApiKey.key,
+      workflowId,
+    });
+
+    if (!signedWebhookRequest.success) {
+      return signedWebhookRequest.response;
+    }
+
+    const { rawBody } = signedWebhookRequest;
 
     // Verify this is a webhook-triggered workflow
     const triggerNode = (workflow.nodes as WorkflowNode[]).find(
@@ -203,15 +304,25 @@ export async function POST(
       );
     }
 
-    const validationResult = await readValidatedJson(
-      request,
-      webhookPayloadSchema
-    );
+    let validationResult: ReturnType<typeof validateWebhookPayload>;
+
+    try {
+      validationResult = validateWebhookPayload(rawBody);
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON request body" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     if (!validationResult.success) {
-      return NextResponse.json(await validationResult.response.json(), {
-        status: validationResult.response.status,
-        headers: corsHeaders,
-      });
+      return NextResponse.json(
+        {
+          error:
+            validationResult.error.issues[0]?.message ?? "Invalid request body",
+        },
+        { status: 400, headers: corsHeaders }
+      );
     }
     const body = validationResult.data;
 

@@ -29,21 +29,61 @@ import {
 import { api } from "@/lib/api-client";
 import { signOut, useSession } from "@/lib/auth-client";
 
+type UserMetadata = {
+  isAnonymous: boolean | null;
+  providerId: string | null;
+};
+
 export const UserMenu = () => {
   const { data: session, isPending } = useSession();
   const { theme, setTheme } = useTheme();
   const { open: openOverlay } = useOverlay();
-  const [providerId, setProviderId] = useState<string | null>(null);
+  const [userMetadata, setUserMetadata] = useState<UserMetadata | null>(null);
+  const [isMetadataLoading, setIsMetadataLoading] = useState(false);
+  const sessionUser = session?.user ?? null;
 
-  // Fetch provider info when session is available
+  // Fetch persisted user metadata when the authenticated user changes.
   useEffect(() => {
-    if (session?.user && !session.user.name?.startsWith("Anonymous")) {
-      api.user
-        .get()
-        .then((user) => setProviderId(user.providerId))
-        .catch(() => setProviderId(null));
+    if (!sessionUser) {
+      setUserMetadata(null);
+      setIsMetadataLoading(false);
+      return;
     }
-  }, [session?.user]);
+
+    let cancelled = false;
+    setIsMetadataLoading(true);
+
+    api.user
+      .get()
+      .then((user) => {
+        if (cancelled) {
+          return;
+        }
+
+        setUserMetadata({
+          isAnonymous: user.isAnonymous,
+          providerId: user.providerId,
+        });
+      })
+      .catch(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setUserMetadata(null);
+      })
+      .finally(() => {
+        if (cancelled) {
+          return;
+        }
+
+        setIsMetadataLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sessionUser]);
 
   const handleLogout = async () => {
     await signOut();
@@ -51,9 +91,9 @@ export const UserMenu = () => {
 
   // OAuth users can't edit their profile
   const isOAuthUser =
-    providerId === "vercel" ||
-    providerId === "github" ||
-    providerId === "google";
+    userMetadata?.providerId === "vercel" ||
+    userMetadata?.providerId === "github" ||
+    userMetadata?.providerId === "google";
 
   const getUserInitials = () => {
     if (session?.user?.name) {
@@ -80,12 +120,11 @@ export const UserMenu = () => {
     );
   }
 
-  // Check if user is anonymous
-  // Better Auth anonymous plugin creates users with name "Anonymous" and temp- email
-  const isAnonymous =
-    !session?.user ||
-    session.user.name === "Anonymous" ||
-    session.user.email?.startsWith("temp-");
+  if (sessionUser && isMetadataLoading && !userMetadata) {
+    return <div className="h-9 w-9" />;
+  }
+
+  const isAnonymous = !sessionUser || userMetadata?.isAnonymous === true;
 
   // Show Sign In button if user is anonymous or not logged in
   if (isAnonymous) {
@@ -148,7 +187,7 @@ export const UserMenu = () => {
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Sun className="dark:-rotate-90 size-4 rotate-0 scale-100 transition-all dark:scale-0" />
             <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span>Theme</span>
           </DropdownMenuSubTrigger>

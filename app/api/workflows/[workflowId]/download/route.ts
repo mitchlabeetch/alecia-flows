@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { logApiError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflows } from "@/lib/db/schema";
@@ -107,7 +108,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: "Internal server error",
       },
       { status: 500 }
     );
@@ -335,14 +336,11 @@ For more information, visit the [Workflow documentation](https://workflow.is).
       files: allFiles,
     });
   } catch (error) {
-    console.error("Failed to prepare workflow download:", error);
+    logApiError("Failed to prepare workflow download", error);
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to prepare workflow download",
+        error: "Failed to prepare workflow download",
       },
       { status: 500 }
     );
