@@ -17,9 +17,9 @@ import { mono, sans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "AI Workflow Builder - Visual Workflow Automation",
+  title: "Alecia Flows - Automatisation des processus",
   description:
-    "Build powerful AI-driven workflow automations with a visual, node-based editor. Built with Next.js and React Flow.",
+    "Automatisez vos processus M&A avec une plateforme visuelle basée sur des nœuds. Gérez vos workflows d'automatisation de manière efficace.",
 };
 
 export const viewport: Viewport = {

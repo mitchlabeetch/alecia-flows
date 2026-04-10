@@ -86,7 +86,10 @@ Visit [http://localhost:3000](http://localhost:3000) to get started.
 - **Firecrawl**: Scrape URL, Search Web
 - **GitHub**: Create Issue, List Issues, Get Issue, Update Issue
 - **Linear**: Create Ticket, Find Issues
+- **Notion**: Créer une Page, Ajouter une entrée à une base de données, Rechercher des Pages, Ajouter du contenu à une Page
+- **Office 365**: Créer un classeur Excel, Ajouter une ligne Excel, Créer un document Word, Créer une présentation PowerPoint, Créer une page OneNote, Envoyer un Email
 - **Perplexity**: Search Web, Ask Question, Research Topic
+- **Pipedrive**: Créer un Deal, Rechercher des Deals, Créer un Contact, Ajouter une Note, Mettre à jour un Deal
 - **Resend**: Send Email
 - **Slack**: Send Slack Message
 - **Stripe**: Create Customer, Get Customer, Create Invoice
