@@ -133,7 +133,13 @@ async function stepHandler(
       input.sectionName
     );
 
-    const htmlContent = `<!DOCTYPE html><html><head><title>${input.pageTitle}</title></head><body>${input.pageContent || `<h1>${input.pageTitle}</h1>`}</body></html>`;
+    const bodyContent =
+      input.pageContent || `<h1>${input.pageTitle}</h1>`;
+    const htmlContent = [
+      "<!DOCTYPE html><html><head>",
+      `<title>${input.pageTitle}</title>`,
+      `</head><body>${bodyContent}</body></html>`,
+    ].join("");
 
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/me/onenote/sections/${sectionId}/pages`,

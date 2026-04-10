@@ -20,7 +20,11 @@ export type CreatePowerPointInput = StepInput &
   CreatePowerPointCoreInput & { integrationId?: string };
 
 async function getToken(credentials: Office365Credentials): Promise<string> {
-  const { OFFICE365_TENANT_ID: tenantId, OFFICE365_CLIENT_ID: clientId, OFFICE365_CLIENT_SECRET: clientSecret } = credentials;
+  const {
+    OFFICE365_TENANT_ID: tenantId,
+    OFFICE365_CLIENT_ID: clientId,
+    OFFICE365_CLIENT_SECRET: clientSecret,
+  } = credentials;
   const response = await fetch(
     `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
     {
