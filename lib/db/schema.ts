@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { boolean, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import type { IntegrationType } from "../types/integration";
 import { generateId } from "../utils/id";
 
@@ -52,8 +59,8 @@ export const verifications = pgTable("verifications", {
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at"),
-  updatedAt: timestamp("updated_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // Workflow visibility type
@@ -120,7 +127,7 @@ export const workflowExecutions = pgTable("workflow_executions", {
   error: text("error"),
   startedAt: timestamp("started_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
-  duration: text("duration"), // Duration in milliseconds
+  duration: integer("duration"), // Duration in milliseconds
 });
 
 // Workflow execution logs to track individual node executions
@@ -130,7 +137,7 @@ export const workflowExecutionLogs = pgTable("workflow_execution_logs", {
     .$defaultFn(() => generateId()),
   executionId: text("execution_id")
     .notNull()
-    .references(() => workflowExecutions.id),
+    .references(() => workflowExecutions.id, { onDelete: "cascade" }),
   nodeId: text("node_id").notNull(),
   nodeName: text("node_name").notNull(),
   nodeType: text("node_type").notNull(),
@@ -144,7 +151,7 @@ export const workflowExecutionLogs = pgTable("workflow_execution_logs", {
   error: text("error"),
   startedAt: timestamp("started_at").notNull().defaultNow(),
   completedAt: timestamp("completed_at"),
-  duration: text("duration"), // Duration in milliseconds
+  duration: integer("duration"), // Duration in milliseconds
   timestamp: timestamp("timestamp").notNull().defaultNow(),
 });
 
@@ -161,6 +168,7 @@ export const apiKeys = pgTable("api_keys", {
   keyPrefix: text("key_prefix").notNull(), // Store first few chars for display (e.g., "wf_abc...")
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastUsedAt: timestamp("last_used_at"),
+  expiresAt: timestamp("expires_at"),
 });
 
 // Relations

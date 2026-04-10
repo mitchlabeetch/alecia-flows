@@ -69,7 +69,7 @@ export async function logStepCompleteDb(
       output: params.output,
       error: params.error,
       completedAt: new Date(),
-      duration: duration.toString(),
+      duration,
     })
     .where(eq(workflowExecutionLogs.id, params.logId));
 }
@@ -97,7 +97,7 @@ export async function logWorkflowCompleteDb(
       output: params.output,
       error: params.error,
       completedAt: new Date(),
-      duration: duration.toString(),
+      duration,
     })
     .where(eq(workflowExecutions.id, params.executionId));
 }

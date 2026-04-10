@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { api } from "@/lib/api-client";
 import { authClient, useSession } from "@/lib/auth-client";
+import type { WorkflowVisibility } from "@/lib/db/schema";
 import { integrationsAtom } from "@/lib/integrations-store";
 import type { IntegrationType } from "@/lib/types/integration";
 import {
@@ -62,8 +63,8 @@ import {
   updateNodeDataAtom,
   type WorkflowEdge,
   type WorkflowNode,
-  type WorkflowVisibility,
 } from "@/lib/workflow-store";
+import { isInternalWorkflowName } from "@/lib/workflows/constants";
 import {
   findActionById,
   flattenConfigFields,
@@ -797,7 +798,9 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
       confirmVariant: "destructive" as const,
       destructive: true,
       onConfirm: async () => {
-        if (!currentWorkflowId) return;
+        if (!currentWorkflowId) {
+          return;
+        }
         try {
           await api.workflow.delete(currentWorkflowId);
           toast.success("Workflow deleted successfully");
@@ -1407,7 +1410,7 @@ function WorkflowMenuComponent({
               <DropdownMenuItem disabled>No workflows found</DropdownMenuItem>
             ) : (
               state.allWorkflows
-                .filter((w) => w.name !== "__current__")
+                .filter((w) => !isInternalWorkflowName(w.name))
                 .map((workflow) => (
                   <DropdownMenuItem
                     className="flex items-center justify-between"

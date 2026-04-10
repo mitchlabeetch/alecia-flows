@@ -58,38 +58,18 @@ const containerVariants: Variants = {
 };
 
 /**
- * Variants for drawer container
- */
-const drawerContainerVariants: Variants = {
-  hidden: {
-    y: "100%",
-    opacity: 0.5,
-  },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: drawerSpring,
-  },
-  exit: {
-    y: "100%",
-    opacity: 0.5,
-    transition: {
-      type: "spring",
-      stiffness: 500,
-      damping: 40,
-    },
-  },
-};
-
-/**
  * Get x position for overlay item based on its position relative to current
  */
 function getOverlayXPosition(
   isCurrent: boolean,
   isPrevious: boolean
 ): "0%" | "-35%" | "100%" {
-  if (isCurrent) return "0%";
-  if (isPrevious) return "-35%";
+  if (isCurrent) {
+    return "0%";
+  }
+  if (isPrevious) {
+    return "-35%";
+  }
   return "100%";
 }
 
@@ -142,15 +122,9 @@ function DesktopOverlayContainer() {
   const renderStack = frozenStackRef.current;
   const currentIndex = renderStack.length - 1;
 
-  // DEBUG
-  console.log("[DesktopOverlay]", {
-    isOpen,
-    stackLength: stack.length,
-    frozenStackLength: frozenStackRef.current.length,
-    renderStackLength: renderStack.length,
-  });
-
   // Measure content height when it changes, reset on fresh open
+  // Only reacts to open/close transitions; stack mutations while open should not
+  // reset measured height or the frozen stack used for exit animations.
   useLayoutEffect(() => {
     const isFreshOpen = isOpen && !wasOpenRef.current;
     wasOpenRef.current = isOpen;
@@ -166,10 +140,10 @@ function DesktopOverlayContainer() {
         setMinHeight(height);
       }
     }
-  }, [stack, isOpen]);
+  }, [isOpen]);
 
   // Use live stack for options checks (only when open)
-  const currentItem = stack[stack.length - 1];
+  const currentItem = stack.at(-1);
   const springTransition = shouldReduceMotion ? { duration: 0.01 } : iosSpring;
   const isPushing = direction === 1;
 
@@ -196,11 +170,8 @@ function DesktopOverlayContainer() {
   }, [isOpen, handleEscapeKey]);
 
   const handleExitComplete = useCallback(() => {
-    console.log("[DesktopOverlay] handleExitComplete called");
     frozenStackRef.current = [];
   }, []);
-
-  console.log("[DesktopOverlay] Rendering, isOpen:", isOpen);
 
   // Don't render Dialog at all when closed - this ensures clean unmount
   if (!isOpen && frozenStackRef.current.length === 0) {
@@ -225,7 +196,7 @@ function DesktopOverlayContainer() {
             {/* Dialog container */}
             <motion.div
               animate="visible"
-              className="fixed top-1/2 left-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 px-4"
+              className="-translate-x-1/2 -translate-y-1/2 fixed top-1/2 left-1/2 z-50 w-full max-w-lg px-4"
               exit="exit"
               initial="hidden"
               variants={containerVariants}
@@ -326,10 +297,10 @@ function MobileOverlayContainer() {
         setMinHeight(height);
       }
     }
-  }, [stack, isOpen]);
+  }, [isOpen]);
 
   // Use live stack for options checks (only when open)
-  const currentItem = stack[stack.length - 1];
+  const currentItem = stack.at(-1);
   const renderCurrentItem = renderStack[currentIndex];
   const springTransition = shouldReduceMotion ? { duration: 0.01 } : iosSpring;
   const isPushing = direction === 1;

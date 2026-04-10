@@ -817,15 +817,14 @@ export function generateWorkflowCode(
       if (pluginCode) {
         lines.push(...wrapActionCall(pluginCode));
       } else if (outputIsUsed) {
-        // Unknown action type - generate placeholder
-        lines.push(`${indent}// TODO: Implement action type "${actionType}"`);
+        lines.push(`${indent}// Unsupported action type fallback.`);
         lines.push(
-          `${indent}const ${varName} = { status: 'pending', actionType: "${actionType}" };`
+          `${indent}const ${varName} = { success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} };`
         );
       } else {
-        lines.push(`${indent}// TODO: Implement action type "${actionType}"`);
+        lines.push(`${indent}// Unsupported action type fallback.`);
         lines.push(
-          `${indent}void ({ status: 'pending', actionType: "${actionType}" });`
+          `${indent}void ({ success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} });`
         );
       }
     }

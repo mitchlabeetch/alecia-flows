@@ -1,9 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import { apiKeyCreateSchema, readValidatedJson } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { apiKeys } from "@/lib/db/schema";
+import { apiKeys, users } from "@/lib/db/schema";
 
 // Generate a secure API key
 function generateApiKey(): { key: string; hash: string; prefix: string } {
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
         keyPrefix: true,
         createdAt: true,
         lastUsedAt: true,
+        expiresAt: true,
       },
       orderBy: (table, { desc }) => [desc(table.createdAt)],
     });
@@ -58,20 +61,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Check if user is anonymous
-    const isAnonymous =
-      session.user.name === "Anonymous" ||
-      session.user.email?.startsWith("temp-");
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, session.user.id),
+      columns: { isAnonymous: true },
+    });
 
-    if (isAnonymous) {
+    if (user?.isAnonymous) {
       return NextResponse.json(
         { error: "Anonymous users cannot create API keys" },
         { status: 403 }
       );
     }
 
-    const body = await request.json().catch(() => ({}));
-    const name = body.name || null;
+    const validation = await readValidatedJson(request, apiKeyCreateSchema);
+    if (!validation.success) {
+      return validation.response;
+    }
+    const { name, expiresAt } = validation.data;
 
     // Generate new API key
     const { key, hash, prefix } = generateApiKey();
@@ -84,12 +90,15 @@ export async function POST(request: Request) {
         name,
         keyHash: hash,
         keyPrefix: prefix,
+        expiresAt,
       })
       .returning({
         id: apiKeys.id,
         name: apiKeys.name,
         keyPrefix: apiKeys.keyPrefix,
         createdAt: apiKeys.createdAt,
+        lastUsedAt: apiKeys.lastUsedAt,
+        expiresAt: apiKeys.expiresAt,
       });
 
     // Return the full key only on creation (won't be shown again)
@@ -98,10 +107,6 @@ export async function POST(request: Request) {
       key, // Full key - only returned once!
     });
   } catch (error) {
-    console.error("Failed to create API key:", error);
-    return NextResponse.json(
-      { error: "Failed to create API key" },
-      { status: 500 }
-    );
+    return internalServerError("Failed to create API key", error);
   }
 }

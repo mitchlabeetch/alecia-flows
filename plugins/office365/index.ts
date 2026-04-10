@@ -50,8 +50,8 @@ const office365Plugin: IntegrationPlugin = {
   actions: [
     {
       slug: "create-excel-workbook",
-      label: "Créer un classeur Excel",
-      description: "Créer un nouveau classeur Excel dans OneDrive",
+      label: "Create Excel Workbook",
+      description: "Create a new Excel workbook in OneDrive",
       category: "Office 365",
       stepFunction: "createExcelWorkbookStep",
       stepImportPath: "create-excel-workbook",
@@ -80,8 +80,8 @@ const office365Plugin: IntegrationPlugin = {
     },
     {
       slug: "add-excel-row",
-      label: "Ajouter une ligne Excel",
-      description: "Ajouter une ligne de données dans un tableau Excel",
+      label: "Add Excel Row",
+      description: "Add a data row to an Excel table",
       category: "Office 365",
       stepFunction: "addExcelRowStep",
       stepImportPath: "add-excel-row",
@@ -127,8 +127,8 @@ const office365Plugin: IntegrationPlugin = {
     },
     {
       slug: "create-word-document",
-      label: "Créer un document Word",
-      description: "Créer un nouveau document Word dans OneDrive",
+      label: "Create Word Document",
+      description: "Create a new Word document in OneDrive",
       category: "Office 365",
       stepFunction: "createWordDocumentStep",
       stepImportPath: "create-word-document",
@@ -165,8 +165,8 @@ const office365Plugin: IntegrationPlugin = {
     },
     {
       slug: "create-powerpoint",
-      label: "Créer une présentation PowerPoint",
-      description: "Créer une nouvelle présentation PowerPoint dans OneDrive",
+      label: "Create PowerPoint Presentation",
+      description: "Create a new PowerPoint presentation in OneDrive",
       category: "Office 365",
       stepFunction: "createPowerPointStep",
       stepImportPath: "create-powerpoint",
@@ -195,8 +195,8 @@ const office365Plugin: IntegrationPlugin = {
     },
     {
       slug: "create-onenote-page",
-      label: "Créer une page OneNote",
-      description: "Créer une nouvelle page dans un bloc-notes OneNote",
+      label: "Create OneNote Page",
+      description: "Create a new page in a OneNote notebook",
       category: "Office 365",
       stepFunction: "createOneNotePageStep",
       stepImportPath: "create-onenote-page",
@@ -244,8 +244,8 @@ const office365Plugin: IntegrationPlugin = {
     },
     {
       slug: "send-email",
-      label: "Envoyer un Email",
-      description: "Envoyer un email via Microsoft Outlook",
+      label: "Send Email",
+      description: "Send an email with Microsoft Outlook",
       category: "Office 365",
       stepFunction: "sendOutlookEmailStep",
       stepImportPath: "send-email",

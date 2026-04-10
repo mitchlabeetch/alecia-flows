@@ -9,8 +9,8 @@
     "build": "tsx scripts/migrate-prod.ts && pnpm discover-plugins && next build",
     "start": "next start",
     "type-check": "tsc --noEmit",
-    "check": "npx ultracite@latest check",
-    "fix": "npx ultracite@latest fix",
+    "check": "pnpm exec ultracite check",
+    "fix": "pnpm exec ultracite fix",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -18,7 +18,8 @@
     "discover-plugins": "tsx scripts/discover-plugins.ts",
     "create-plugin": "tsx scripts/create-plugin.ts",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "pnpm discover-plugins"
   },
   "dependencies": {
     "@ai-sdk/provider": "^2.0.0",
@@ -31,6 +32,8 @@
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@slack/web-api": "^7.12.0",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "@vercel/analytics": "^1.5.0",
     "@vercel/og": "^0.8.5",
     "@vercel/sdk": "^1.17.1",
@@ -60,12 +63,12 @@
     "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
-    "v0-sdk": "^0.15.1",
     "vaul": "^1.1.2",
     "workflow": "4.0.1-beta.17",
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.3.4",
     "@inquirer/prompts": "^8.0.1",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",

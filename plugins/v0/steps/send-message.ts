@@ -1,9 +1,9 @@
 import "server-only";
 
-import { createClient, type ChatsSendMessageResponse } from "v0-sdk";
 import { fetchCredentials } from "@/lib/credential-fetcher";
 import { type StepInput, withStepLogging } from "@/lib/steps/step-handler";
 import { getErrorMessage } from "@/lib/utils";
+import { sendV0Message } from "../api";
 import type { V0Credentials } from "../credentials";
 
 type SendMessageResult =
@@ -38,12 +38,11 @@ async function stepHandler(
   }
 
   try {
-    const client = createClient({ apiKey });
-
-    const result = (await client.chats.sendMessage({
+    const result = await sendV0Message({
+      apiKey,
       chatId: input.chatId,
       message: input.message,
-    })) as ChatsSendMessageResponse;
+    });
 
     return {
       success: true,

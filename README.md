@@ -58,12 +58,17 @@ AI_GATEWAY_API_KEY=your-openai-api-key
 # Install dependencies
 pnpm install
 
+# Generate plugin registries and generated types
+pnpm discover-plugins
+
 # Run database migrations
 pnpm db:push
 
 # Start development server
 pnpm dev
 ```
+
+`pnpm dev` and `pnpm build` also run `pnpm discover-plugins` automatically, and `pnpm prepare` keeps generated plugin files up to date after install. The generated files in `lib/` are intentionally gitignored, so a fresh clone must run `pnpm discover-plugins` before type-checking or building.
 
 Visit [http://localhost:3000](http://localhost:3000) to get started.
 
@@ -86,10 +91,10 @@ Visit [http://localhost:3000](http://localhost:3000) to get started.
 - **Firecrawl**: Scrape URL, Search Web
 - **GitHub**: Create Issue, List Issues, Get Issue, Update Issue
 - **Linear**: Create Ticket, Find Issues
-- **Notion**: Créer une Page, Ajouter une entrée à une base de données, Rechercher des Pages, Ajouter du contenu à une Page
-- **Office 365**: Créer un classeur Excel, Ajouter une ligne Excel, Créer un document Word, Créer une présentation PowerPoint, Créer une page OneNote, Envoyer un Email
+- **Notion**: Create Page, Add Database Entry, Search Pages, Append Page Content
+- **Office 365**: Create Excel Workbook, Add Excel Row, Create Word Document, Create PowerPoint Presentation, Create OneNote Page, Send Email
 - **Perplexity**: Search Web, Ask Question, Research Topic
-- **Pipedrive**: Créer un Deal, Rechercher des Deals, Créer un Contact, Ajouter une Note, Mettre à jour un Deal
+- **Pipedrive**: Create Deal, Search Deals, Create Contact, Add Note, Update Deal
 - **Resend**: Send Email
 - **Slack**: Send Slack Message
 - **Stripe**: Create Customer, Get Customer, Create Invoice
@@ -125,7 +130,7 @@ export async function welcome(email: string, name: string, plan: string) {
 
 ```bash
 # Via API
-GET /api/workflows/{id}/generate-code
+GET /api/workflows/{id}/code
 ```
 
 The generated code includes:
@@ -142,23 +147,25 @@ The generated code includes:
 - `GET /api/workflows` - List all workflows
 - `POST /api/workflows` - Create a new workflow
 - `GET /api/workflows/{id}` - Get workflow by ID
-- `PUT /api/workflows/{id}` - Update workflow
+- `PATCH /api/workflows/{id}` - Update workflow
 - `DELETE /api/workflows/{id}` - Delete workflow
 
 ### Workflow Execution
 
-- `POST /api/workflows/{id}/execute` - Execute a workflow
+- `POST /api/workflow/{id}/execute` - Execute a workflow
+- `POST /api/workflows/{id}/webhook` - Trigger a webhook workflow with `Authorization: Bearer <api-key>`
 - `GET /api/workflows/{id}/executions` - Get execution history
 - `GET /api/workflows/executions/{executionId}/logs` - Get detailed execution logs
 
+Webhook note: the API key currently acts as the webhook secret. Treat it like a secret token and keep it private.
+
 ### Code Generation
 
-- `GET /api/workflows/{id}/generate-code` - Generate TypeScript code
-- `POST /api/workflows/{id}/generate-code` - Generate with custom options
+- `GET /api/workflows/{id}/code` - Generate TypeScript code
 
 ### AI Generation
 
-- `POST /api/ai/generate-workflow` - Generate workflow from prompt
+- `POST /api/ai/generate` - Generate workflow from prompt
 
 ## Database Schema
 
@@ -184,10 +191,7 @@ pnpm build
 # Type checking
 pnpm type-check
 
-# Linting
-pnpm check
-
-# Formatting
+# Format and lint fixes
 pnpm fix
 
 # Database
@@ -198,80 +202,19 @@ pnpm db:studio    # Open Drizzle Studio
 
 ## Integrations
 
-### Resend (Email)
+Integrations are provided through the plugin system in `plugins/`.
 
-Send transactional emails with Resend's API.
+- Configure credentials from the app&apos;s Integrations UI
+- Use plugin actions in the workflow builder action picker
+- Run `pnpm discover-plugins` after adding or changing plugins
+- Access backend endpoints from the frontend with `import { api } from "@/lib/api-client"`
 
-```typescript
-import { sendEmail } from "@/lib/integrations/resend";
+Examples:
 
-await sendEmail({
-  to: "user@example.com",
-  subject: "Welcome!",
-  body: "Welcome to our platform",
-});
-```
-
-### Linear (Tickets)
-
-Create and manage Linear issues.
-
-```typescript
-import { createTicket } from "@/lib/integrations/linear";
-
-await createTicket({
-  title: "Bug Report",
-  description: "Something is broken",
-  priority: 1,
-});
-```
-
-### PostgreSQL
-
-Direct database access for queries and updates.
-
-```typescript
-import { queryData } from "@/lib/integrations/database";
-
-await queryData("users", { email: "user@example.com" });
-```
-
-### External APIs
-
-Make HTTP requests to any API.
-
-```typescript
-import { callApi } from "@/lib/integrations/api";
-
-await callApi({
-  url: "https://api.example.com/endpoint",
-  method: "POST",
-  body: { data: "value" },
-});
-```
-
-### Firecrawl (Web Scraping)
-
-Scrape websites and search the web with Firecrawl.
-
-```typescript
-import {
-  firecrawlScrapeStep,
-  firecrawlSearchStep,
-} from "@/lib/steps/firecrawl";
-
-// Scrape a URL
-const scrapeResult = await firecrawlScrapeStep({
-  url: "https://example.com",
-  formats: ["markdown"],
-});
-
-// Search the web
-const searchResult = await firecrawlSearchStep({
-  query: "AI workflow builders",
-  limit: 5,
-});
-```
+- Resend: use the **Send Email** action
+- Linear: use **Create Ticket** or **Find Issues**
+- Firecrawl: use **Scrape URL** or **Search Web**
+- System actions: use **HTTP Request**, **Database Query**, or **Condition**
 
 ## Tech Stack
 

@@ -1,6 +1,7 @@
 export async function testV0(credentials: Record<string, string>) {
   try {
     const apiKey = credentials.V0_API_KEY;
+    const { getV0User } = await import("./api");
 
     if (!apiKey) {
       return {
@@ -10,9 +11,7 @@ export async function testV0(credentials: Record<string, string>) {
     }
 
     // Test the API key by making a request to get user info
-    const { createClient } = await import("v0-sdk");
-    const client = createClient({ apiKey });
-    await client.user.get();
+    await getV0User(apiKey);
 
     return {
       success: true,
@@ -24,4 +23,3 @@ export async function testV0(credentials: Record<string, string>) {
     };
   }
 }
-

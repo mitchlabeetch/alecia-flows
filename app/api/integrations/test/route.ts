@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import postgres from "postgres";
+import { internalServerError } from "@/lib/api/errors";
+import { integrationTestSchema, readValidatedJson } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import type {
   IntegrationConfig,
@@ -34,14 +36,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body: TestConnectionRequest = await request.json();
-
-    if (!(body.type && body.config)) {
-      return NextResponse.json(
-        { error: "Type and config are required" },
-        { status: 400 }
-      );
+    const validationResult = await readValidatedJson(
+      request,
+      integrationTestSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
     }
+    const body = validationResult.data as TestConnectionRequest;
 
     if (body.type === "database") {
       const result = await testDatabaseConnection(body.config.url);
@@ -78,14 +80,13 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Failed to test connection:", error);
+    const response = internalServerError("Failed to test connection", error);
     return NextResponse.json(
       {
         status: "error",
-        message:
-          error instanceof Error ? error.message : "Failed to test connection",
+        message: (await response.json()).error,
       },
-      { status: 500 }
+      { status: response.status }
     );
   }
 }

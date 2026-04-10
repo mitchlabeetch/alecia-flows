@@ -6,7 +6,7 @@ const notionPlugin: IntegrationPlugin = {
   type: "notion",
   label: "Notion",
   description:
-    "Créez et gérez des pages, bases de données et entrées dans Notion",
+    "Create and manage pages, databases, and entries in Notion",
 
   icon: NotionIcon,
 
@@ -36,15 +36,15 @@ const notionPlugin: IntegrationPlugin = {
   actions: [
     {
       slug: "create-page",
-      label: "Créer une Page",
-      description: "Créer une nouvelle page dans un espace de travail Notion",
+      label: "Create Page",
+      description: "Create a new page in a Notion workspace",
       category: "Notion",
       stepFunction: "createNotionPageStep",
       stepImportPath: "create-page",
       outputFields: [
-        { field: "id", description: "ID de la page" },
-        { field: "url", description: "URL de la page" },
-        { field: "title", description: "Titre de la page" },
+         { field: "id", description: "Page ID" },
+         { field: "url", description: "Page URL" },
+         { field: "title", description: "Page title" },
       ],
       configFields: [
         {
@@ -76,15 +76,14 @@ const notionPlugin: IntegrationPlugin = {
     },
     {
       slug: "add-database-entry",
-      label: "Ajouter une entrée à une base de données",
-      description:
-        "Ajouter une nouvelle entrée dans une base de données Notion",
+      label: "Add Database Entry",
+      description: "Add a new entry to a Notion database",
       category: "Notion",
       stepFunction: "addNotionDatabaseEntryStep",
       stepImportPath: "add-database-entry",
       outputFields: [
-        { field: "id", description: "ID de l'entrée" },
-        { field: "url", description: "URL de l'entrée" },
+         { field: "id", description: "Entry ID" },
+         { field: "url", description: "Entry URL" },
       ],
       configFields: [
         {
@@ -110,15 +109,14 @@ const notionPlugin: IntegrationPlugin = {
     },
     {
       slug: "search-pages",
-      label: "Rechercher des Pages",
-      description:
-        "Rechercher des pages dans l'espace de travail Notion",
+      label: "Search Pages",
+      description: "Search for pages in a Notion workspace",
       category: "Notion",
       stepFunction: "searchNotionPagesStep",
       stepImportPath: "search-pages",
       outputFields: [
-        { field: "pages", description: "Liste des pages trouvées" },
-        { field: "count", description: "Nombre de résultats" },
+         { field: "pages", description: "List of matching pages" },
+         { field: "count", description: "Result count" },
       ],
       configFields: [
         {
@@ -143,14 +141,13 @@ const notionPlugin: IntegrationPlugin = {
     },
     {
       slug: "append-block",
-      label: "Ajouter du contenu à une Page",
-      description:
-        "Ajouter des blocs de contenu à une page Notion existante",
+      label: "Append Page Content",
+      description: "Append content blocks to an existing Notion page",
       category: "Notion",
       stepFunction: "appendNotionBlockStep",
       stepImportPath: "append-block",
       outputFields: [
-        { field: "blockIds", description: "IDs des blocs ajoutés" },
+         { field: "blockIds", description: "Added block IDs" },
       ],
       configFields: [
         {

@@ -1,5 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import { readValidatedJson, workflowUpdateSchema } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateWorkflowIntegrations } from "@/lib/db/integrations";
@@ -80,14 +82,7 @@ export async function GET(
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error("Failed to get workflow:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to get workflow",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to get workflow", error);
   }
 }
 
@@ -147,7 +142,14 @@ export async function PATCH(
       );
     }
 
-    const body = await request.json();
+    const validationResult = await readValidatedJson(
+      request,
+      workflowUpdateSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
+    }
+    const body = validationResult.data;
 
     // Validate that all integrationIds in nodes belong to the current user
     if (Array.isArray(body.nodes)) {
@@ -161,18 +163,6 @@ export async function PATCH(
           { status: 403 }
         );
       }
-    }
-
-    // Validate visibility value if provided
-    if (
-      body.visibility !== undefined &&
-      body.visibility !== "private" &&
-      body.visibility !== "public"
-    ) {
-      return NextResponse.json(
-        { error: "Invalid visibility value. Must be 'private' or 'public'" },
-        { status: 400 }
-      );
     }
 
     const updateData = buildUpdateData(body);
@@ -197,14 +187,7 @@ export async function PATCH(
       isOwner: true,
     });
   } catch (error) {
-    console.error("Failed to update workflow:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to update workflow",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to update workflow", error);
   }
 }
 
@@ -241,13 +224,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete workflow:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to delete workflow",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to delete workflow", error);
   }
 }

@@ -1,6 +1,8 @@
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import { readValidatedJson, workflowCreateSchema } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateWorkflowIntegrations } from "@/lib/db/integrations";
@@ -33,14 +35,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-
-    if (!(body.name && body.nodes && body.edges)) {
-      return NextResponse.json(
-        { error: "Name, nodes, and edges are required" },
-        { status: 400 }
-      );
+    const validationResult = await readValidatedJson(
+      request,
+      workflowCreateSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
     }
+    const body = validationResult.data;
 
     // Validate that all integrationIds in nodes belong to the current user
     const validation = await validateWorkflowIntegrations(
@@ -82,6 +84,7 @@ export async function POST(request: Request) {
         nodes,
         edges: body.edges,
         userId: session.user.id,
+        visibility: body.visibility,
       })
       .returning();
 
@@ -91,13 +94,6 @@ export async function POST(request: Request) {
       updatedAt: newWorkflow.updatedAt.toISOString(),
     });
   } catch (error) {
-    console.error("Failed to create workflow:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to create workflow",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to create workflow", error);
   }
 }

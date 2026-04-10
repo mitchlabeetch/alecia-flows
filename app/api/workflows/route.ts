@@ -1,8 +1,10 @@
 import { desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflows } from "@/lib/db/schema";
+import { isInternalWorkflowName } from "@/lib/workflows/constants";
 
 export async function GET(request: Request) {
   try {
@@ -20,21 +22,16 @@ export async function GET(request: Request) {
       .where(eq(workflows.userId, session.user.id))
       .orderBy(desc(workflows.updatedAt));
 
-    const mappedWorkflows = userWorkflows.map((workflow) => ({
-      ...workflow,
-      createdAt: workflow.createdAt.toISOString(),
-      updatedAt: workflow.updatedAt.toISOString(),
-    }));
+    const mappedWorkflows = userWorkflows
+      .filter((workflow) => !isInternalWorkflowName(workflow.name))
+      .map((workflow) => ({
+        ...workflow,
+        createdAt: workflow.createdAt.toISOString(),
+        updatedAt: workflow.updatedAt.toISOString(),
+      }));
 
     return NextResponse.json(mappedWorkflows);
   } catch (error) {
-    console.error("Failed to get workflows:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to get workflows",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to get workflows", error);
   }
 }
