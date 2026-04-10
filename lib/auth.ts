@@ -6,15 +6,15 @@ import { isAiGatewayManagedKeysEnabled } from "./ai-gateway/config";
 import { db } from "./db";
 import {
   accounts,
+  apiKeys,
   integrations,
   sessions,
   users,
   verifications,
-  workflowExecutionLogs,
   workflowExecutions,
-  workflowExecutionsRelations,
   workflows,
 } from "./db/schema";
+import { logger } from "./logger";
 
 // Construct schema object for drizzle adapter
 const schema = {
@@ -22,10 +22,6 @@ const schema = {
   session: sessions,
   account: accounts,
   verification: verifications,
-  workflows,
-  workflowExecutions,
-  workflowExecutionLogs,
-  workflowExecutionsRelations,
 };
 
 // Determine the base URL for authentication
@@ -60,9 +56,10 @@ const plugins = [
       const fromUserId = data.anonymousUser.user.id;
       const toUserId = data.newUser.user.id;
 
-      console.log(
-        `[Anonymous Migration] Migrating from user ${fromUserId} to ${toUserId}`
-      );
+      logger.info("[Anonymous Migration] Starting account link migration", {
+        fromUserId,
+        toUserId,
+      });
 
       try {
         // Migrate workflows
@@ -83,13 +80,23 @@ const plugins = [
           .set({ userId: toUserId })
           .where(eq(integrations.userId, fromUserId));
 
-        console.log(
-          `[Anonymous Migration] Successfully migrated data from ${fromUserId} to ${toUserId}`
-        );
+        await db
+          .update(apiKeys)
+          .set({ userId: toUserId })
+          .where(eq(apiKeys.userId, fromUserId));
+
+        logger.info("[Anonymous Migration] Completed account link migration", {
+          fromUserId,
+          toUserId,
+        });
       } catch (error) {
-        console.error(
-          "[Anonymous Migration] Error migrating user data:",
-          error
+        logger.error(
+          "[Anonymous Migration] Failed to migrate linked account data",
+          {
+            fromUserId,
+            toUserId,
+            error,
+          }
         );
         throw error;
       }
@@ -123,7 +130,6 @@ const plugins = [
                   }
                 );
                 const profile = await response.json();
-                console.log("[Vercel OAuth] userinfo response:", profile);
                 return {
                   id: profile.sub,
                   email: profile.email,

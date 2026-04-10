@@ -3,12 +3,11 @@
  * Replaces server actions with API endpoints
  */
 
+import type { WorkflowVisibility } from "./db/schema";
 import type { IntegrationConfig, IntegrationType } from "./types/integration";
 import type { WorkflowEdge, WorkflowNode } from "./workflow-store";
 
 // Workflow data types
-export type WorkflowVisibility = "private" | "public";
-
 export type WorkflowData = {
   id?: string;
   name?: string;
@@ -25,6 +24,19 @@ export type SavedWorkflow = WorkflowData & {
   createdAt: string;
   updatedAt: string;
   isOwner?: boolean;
+};
+
+export type ApiKeyRecord = {
+  id: string;
+  name: string | null;
+  keyPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+};
+
+export type CreatedApiKeyRecord = ApiKeyRecord & {
+  key: string;
 };
 
 // API error class
@@ -433,6 +445,21 @@ export const userApi = {
     }),
 };
 
+export const apiKeysApi = {
+  getAll: () => apiCall<ApiKeyRecord[]>("/api/api-keys"),
+
+  create: (data: { name?: string | null; expiresAt?: string | null }) =>
+    apiCall<CreatedApiKeyRecord>("/api/api-keys", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    apiCall<{ success: boolean }>(`/api/api-keys/${id}`, {
+      method: "DELETE",
+    }),
+};
+
 // Workflow API
 export const workflowApi = {
   // Get all workflows
@@ -465,16 +492,6 @@ export const workflowApi = {
   duplicate: (id: string) =>
     apiCall<SavedWorkflow>(`/api/workflows/${id}/duplicate`, {
       method: "POST",
-    }),
-
-  // Get current workflow state
-  getCurrent: () => apiCall<WorkflowData>("/api/workflows/current"),
-
-  // Save current workflow state
-  saveCurrent: (nodes: WorkflowNode[], edges: WorkflowEdge[]) =>
-    apiCall<WorkflowData>("/api/workflows/current", {
-      method: "POST",
-      body: JSON.stringify({ nodes, edges }),
     }),
 
   // Execute workflow
@@ -519,7 +536,7 @@ export const workflowApi = {
         error: string | null;
         startedAt: Date;
         completedAt: Date | null;
-        duration: string | null;
+        duration: number | null;
       }>
     >(`/api/workflows/${id}/executions`),
 
@@ -545,7 +562,7 @@ export const workflowApi = {
         error: string | null;
         startedAt: Date;
         completedAt: Date | null;
-        duration: string | null;
+        duration: number | null;
         workflow: {
           id: string;
           name: string;
@@ -565,7 +582,7 @@ export const workflowApi = {
         error: string | null;
         startedAt: Date;
         completedAt: Date | null;
-        duration: string | null;
+        duration: number | null;
       }>;
     }>(`/api/workflows/executions/${executionId}/logs`),
 
@@ -586,50 +603,6 @@ export const workflowApi = {
       files?: Record<string, string>;
       error?: string;
     }>(`/api/workflows/${id}/download`),
-
-  // Auto-save with debouncing (kept for backwards compatibility)
-  autoSaveCurrent: (() => {
-    let autosaveTimeout: NodeJS.Timeout | null = null;
-    const AUTOSAVE_DELAY = 2000;
-
-    return (nodes: WorkflowNode[], edges: WorkflowEdge[]): void => {
-      if (autosaveTimeout) {
-        clearTimeout(autosaveTimeout);
-      }
-
-      autosaveTimeout = setTimeout(() => {
-        workflowApi.saveCurrent(nodes, edges).catch((error) => {
-          console.error("Auto-save failed:", error);
-        });
-      }, AUTOSAVE_DELAY);
-    };
-  })(),
-
-  // Auto-save specific workflow with debouncing
-  autoSaveWorkflow: (() => {
-    let autosaveTimeout: NodeJS.Timeout | null = null;
-    const AUTOSAVE_DELAY = 2000;
-
-    return (
-      id: string,
-      data: Partial<WorkflowData>,
-      debounce = true
-    ): Promise<SavedWorkflow> | undefined => {
-      if (!debounce) {
-        return workflowApi.update(id, data);
-      }
-
-      if (autosaveTimeout) {
-        clearTimeout(autosaveTimeout);
-      }
-
-      autosaveTimeout = setTimeout(() => {
-        workflowApi.update(id, data).catch((error) => {
-          console.error("Auto-save failed:", error);
-        });
-      }, AUTOSAVE_DELAY);
-    };
-  })(),
 };
 
 // AI Gateway API (User Keys feature)
@@ -658,6 +631,7 @@ export const aiGatewayApi = {
 export const api = {
   ai: aiApi,
   aiGateway: aiGatewayApi,
+  apiKeys: apiKeysApi,
   integration: integrationApi,
   user: userApi,
   workflow: workflowApi,

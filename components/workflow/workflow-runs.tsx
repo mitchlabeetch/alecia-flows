@@ -39,7 +39,7 @@ type ExecutionLog = {
   status: "pending" | "running" | "success" | "error";
   startedAt: Date;
   completedAt: Date | null;
-  duration: string | null;
+  duration: number | null;
   input?: unknown;
   output?: unknown;
   error: string | null;
@@ -51,7 +51,7 @@ type WorkflowExecution = {
   status: "pending" | "running" | "success" | "error" | "cancelled";
   startedAt: Date;
   completedAt: Date | null;
-  duration: string | null;
+  duration: number | null;
   error: string | null;
 };
 
@@ -79,6 +79,10 @@ function getOutputDisplayValue(
     return value;
   }
   return;
+}
+
+function formatDuration(duration: number) {
+  return duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`;
 }
 
 // Fallback: detect if output is a base64 image (for legacy support)
@@ -426,7 +430,7 @@ function ExecutionLogEntry({
   return (
     <div className="relative flex gap-3" key={log.id}>
       {/* Timeline connector */}
-      <div className="relative -ml-px flex flex-col items-center pt-2">
+      <div className="-ml-px relative flex flex-col items-center pt-2">
         {!isFirst && (
           <div className="absolute bottom-full h-2 w-px bg-border" />
         )}
@@ -467,9 +471,7 @@ function ExecutionLogEntry({
 
             {log.duration && (
               <span className="shrink-0 font-mono text-muted-foreground text-xs tabular-nums">
-                {Number.parseInt(log.duration, 10) < 1000
-                  ? `${log.duration}ms`
-                  : `${(Number.parseInt(log.duration, 10) / 1000).toFixed(2)}s`}
+                {formatDuration(log.duration)}
               </span>
             )}
           </div>
@@ -585,7 +587,7 @@ export function WorkflowRuns({
         error: string | null;
         startedAt: Date;
         completedAt: Date | null;
-        duration: string | null;
+        duration: number | null;
       }>,
       _workflow?: {
         nodes: unknown;
@@ -853,9 +855,7 @@ export function WorkflowRuns({
                     <>
                       <span>•</span>
                       <span className="tabular-nums">
-                        {Number.parseInt(execution.duration, 10) < 1000
-                          ? `${execution.duration}ms`
-                          : `${(Number.parseInt(execution.duration, 10) / 1000).toFixed(2)}s`}
+                        {formatDuration(execution.duration)}
                       </span>
                     </>
                   )}

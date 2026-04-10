@@ -2,6 +2,7 @@ import type { Edge, EdgeChange, Node, NodeChange } from "@xyflow/react";
 import { applyEdgeChanges, applyNodeChanges } from "@xyflow/react";
 import { atom } from "jotai";
 import { api } from "./api-client";
+import type { WorkflowVisibility } from "./db/schema";
 
 export type WorkflowNodeType = "trigger" | "action" | "add";
 
@@ -17,9 +18,6 @@ export type WorkflowNodeData = {
 
 export type WorkflowNode = Node<WorkflowNodeData>;
 export type WorkflowEdge = Edge;
-
-// Workflow visibility type
-export type WorkflowVisibility = "private" | "public";
 
 // Atoms for workflow state (now backed by database)
 export const nodesAtom = atom<WorkflowNode[]>([]);
@@ -448,23 +446,6 @@ export const clearWorkflowAtom = atom(null, (get, set) => {
 
   // Mark as having unsaved changes
   set(hasUnsavedChangesAtom, true);
-});
-
-// Load workflow from database
-export const loadWorkflowAtom = atom(null, async (_get, set) => {
-  try {
-    set(isLoadingAtom, true);
-    const workflow = await api.workflow.getCurrent();
-    set(nodesAtom, workflow.nodes);
-    set(edgesAtom, workflow.edges);
-    if (workflow.id) {
-      set(currentWorkflowIdAtom, workflow.id);
-    }
-  } catch (error) {
-    console.error("Failed to load workflow:", error);
-  } finally {
-    set(isLoadingAtom, false);
-  }
 });
 
 // Save workflow with a name

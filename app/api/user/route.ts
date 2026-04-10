@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accounts, users } from "@/lib/db/schema";
@@ -42,13 +43,7 @@ export async function GET(request: Request) {
       providerId: userAccount?.providerId ?? null,
     });
   } catch (error) {
-    console.error("Failed to get user:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Failed to get user",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to get user", error);
   }
 }
 
@@ -93,12 +88,6 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to update user:", error);
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Failed to update user",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to update user", error);
   }
 }

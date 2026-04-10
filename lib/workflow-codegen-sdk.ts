@@ -372,7 +372,6 @@ export function generateWorkflowSDKCode(
   }
 
   function buildV0CreateChatParams(config: Record<string, unknown>): string[] {
-    imports.add("import { createClient } from 'v0-sdk';");
     const params = [
       `message: \`${convertTemplateToJS((config.message as string) || "")}\``,
       "apiKey: process.env.V0_API_KEY!",
@@ -386,7 +385,6 @@ export function generateWorkflowSDKCode(
   }
 
   function buildV0SendMessageParams(config: Record<string, unknown>): string[] {
-    imports.add("import { createClient } from 'v0-sdk';");
     return [
       `chatId: \`${convertTemplateToJS((config.chatId as string) || "")}\``,
       `message: \`${convertTemplateToJS((config.message as string) || "")}\``,

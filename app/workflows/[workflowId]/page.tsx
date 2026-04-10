@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { NodeConfigPanel } from "@/components/workflow/node-config-panel";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { api } from "@/lib/api-client";
+import type { WorkflowVisibility } from "@/lib/db/schema";
 import {
   integrationsAtom,
   integrationsLoadedAtom,
@@ -34,7 +35,6 @@ import {
   triggerExecuteAtom,
   updateNodeDataAtom,
   type WorkflowNode,
-  type WorkflowVisibility,
   workflowNotFoundAtom,
 } from "@/lib/workflow-store";
 import { findActionById } from "@/plugins";
@@ -683,7 +683,7 @@ const WorkflowEditor = ({ params }: WorkflowPageProps) => {
       {/* Expand button when panel is collapsed */}
       {!isMobile && panelCollapsed && (
         <button
-          className="pointer-events-auto absolute top-1/2 right-0 z-20 flex size-6 -translate-y-1/2 items-center justify-center rounded-l-full border border-r-0 bg-background shadow-sm transition-colors hover:bg-muted"
+          className="-translate-y-1/2 pointer-events-auto absolute top-1/2 right-0 z-20 flex size-6 items-center justify-center rounded-l-full border border-r-0 bg-background shadow-sm transition-colors hover:bg-muted"
           onClick={() => {
             setIsPanelAnimating(true);
             setPanelCollapsed(false);
@@ -722,7 +722,7 @@ const WorkflowEditor = ({ params }: WorkflowPageProps) => {
             {/* Collapse button - hidden while resizing */}
             {!(isDraggingResize || panelCollapsed) && (
               <button
-                className="absolute top-1/2 left-0 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border bg-background opacity-0 shadow-sm transition-opacity hover:bg-muted group-hover:opacity-100"
+                className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-0 flex size-6 items-center justify-center rounded-full border bg-background opacity-0 shadow-sm transition-opacity hover:bg-muted group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsPanelAnimating(true);

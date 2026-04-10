@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
+import { api } from "@/lib/api-client";
 import { ConfirmOverlay } from "./confirm-overlay";
 import { Overlay } from "./overlay";
 import { useOverlay } from "./overlay-provider";
@@ -17,6 +18,7 @@ type ApiKey = {
   keyPrefix: string;
   createdAt: string;
   lastUsedAt: string | null;
+  expiresAt: string | null;
   key?: string;
 };
 
@@ -42,18 +44,7 @@ function CreateApiKeyOverlay({
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const response = await fetch("/api/api-keys", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: keyName || null }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create API key");
-      }
-
-      const newKey = await response.json();
+      const newKey = await api.apiKeys.create({ name: keyName || null });
       onCreated(newKey);
       toast.success("API key created successfully");
       pop();
@@ -102,11 +93,7 @@ export function ApiKeysOverlay({ overlayId }: ApiKeysOverlayProps) {
   const loadApiKeys = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/api-keys");
-      if (!response.ok) {
-        throw new Error("Failed to load API keys");
-      }
-      const keys = await response.json();
+      const keys = await api.apiKeys.getAll();
       setApiKeys(keys);
     } catch (error) {
       console.error("Failed to load API keys:", error);
@@ -128,14 +115,7 @@ export function ApiKeysOverlay({ overlayId }: ApiKeysOverlayProps) {
   const handleDelete = async (keyId: string) => {
     setDeleting(keyId);
     try {
-      const response = await fetch(`/api/api-keys/${keyId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to delete API key");
-      }
-
+      await api.apiKeys.delete(keyId);
       setApiKeys((prev) => prev.filter((k) => k.id !== keyId));
       toast.success("API key deleted");
     } catch (error) {
@@ -252,6 +232,8 @@ export function ApiKeysOverlay({ overlayId }: ApiKeysOverlayProps) {
                       Created {formatDate(apiKey.createdAt)}
                       {apiKey.lastUsedAt &&
                         ` · Last used ${formatDate(apiKey.lastUsedAt)}`}
+                      {apiKey.expiresAt &&
+                        ` · Expires ${formatDate(apiKey.expiresAt)}`}
                     </p>
                   </div>
                   <Button

@@ -7,7 +7,7 @@ import type { FalCredentials } from "../credentials";
 
 const FAL_API_URL = "https://queue.fal.run";
 const POLL_INTERVAL_MS = 1000;
-const MAX_POLL_ATTEMPTS = 600; // 10 minutes max
+const MAX_POLL_ATTEMPTS = 45; // 45 seconds max
 
 type FalQueueResponse = {
   status: "IN_QUEUE" | "IN_PROGRESS" | "COMPLETED";
@@ -78,7 +78,9 @@ async function pollForResult(
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 
-  throw new Error("Request timed out waiting for fal.ai to complete");
+  throw new Error(
+    `Request timed out waiting for fal.ai to complete after ${(MAX_POLL_ATTEMPTS * POLL_INTERVAL_MS) / 1000} seconds`
+  );
 }
 
 /**

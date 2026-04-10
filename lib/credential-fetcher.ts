@@ -17,6 +17,7 @@ import "server-only";
 
 import { getCredentialMapping, getIntegration } from "@/plugins";
 import { getIntegrationById } from "./db/integrations";
+import { logger } from "./logger";
 import type { IntegrationConfig, IntegrationType } from "./types/integration";
 
 // WorkflowCredentials is now a generic record since plugins define their own keys
@@ -69,26 +70,31 @@ function mapIntegrationConfig(
 export async function fetchCredentials(
   integrationId: string
 ): Promise<WorkflowCredentials> {
-  console.log("[Credential Fetcher] Fetching integration:", integrationId);
+  logger.debug("[Credential Fetcher] Fetching integration", { integrationId });
 
   const integration = await getIntegrationById(integrationId);
 
   if (!integration) {
-    console.log("[Credential Fetcher] Integration not found");
+    logger.warn("[Credential Fetcher] Integration not found", {
+      integrationId,
+    });
     return {};
   }
 
-  console.log("[Credential Fetcher] Found integration:", integration.type);
+  logger.debug("[Credential Fetcher] Found integration", {
+    integrationId,
+    type: integration.type,
+  });
 
   const credentials = mapIntegrationConfig(
     integration.type,
     integration.config
   );
 
-  console.log(
-    "[Credential Fetcher] Returning credentials for type:",
-    integration.type
-  );
+  logger.debug("[Credential Fetcher] Returning credentials", {
+    integrationId,
+    type: integration.type,
+  });
 
   return credentials;
 }

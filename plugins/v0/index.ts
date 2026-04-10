@@ -31,9 +31,6 @@ const v0Plugin: IntegrationPlugin = {
       return testV0;
     },
   },
-
-  dependencies: {},
-
   actions: [
     {
       slug: "create-chat",

@@ -1,10 +1,14 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { start } from "workflow/api";
+import { internalServerError } from "@/lib/api/errors";
+import { executeWorkflowSchema, readValidatedJson } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { validateWorkflowIntegrations } from "@/lib/db/integrations";
 import { workflowExecutions, workflows } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { executeWorkflow } from "@/lib/workflow-executor.workflow";
 import type { WorkflowEdge, WorkflowNode } from "@/lib/workflow-store";
 
@@ -17,19 +21,13 @@ async function executeWorkflowBackground(
   input: Record<string, unknown>
 ) {
   try {
-    console.log("[Workflow Execute] Starting execution:", executionId);
-
-    // SECURITY: We pass only the workflowId as a reference
-    // Steps will fetch credentials internally using fetchWorkflowCredentials(workflowId)
-    // This prevents credentials from being logged in Vercel's observability
-    console.log("[Workflow Execute] Calling executeWorkflow with:", {
+    logger.debug("[Workflow Execute] Starting execution", {
+      executionId,
       nodeCount: nodes.length,
       edgeCount: edges.length,
-      hasExecutionId: !!executionId,
       workflowId,
     });
 
-    // Use start() from workflow/api to properly execute the workflow
     start(executeWorkflow, [
       {
         nodes,
@@ -40,20 +38,19 @@ async function executeWorkflowBackground(
       },
     ]);
 
-    console.log("[Workflow Execute] Workflow started successfully");
+    logger.info("[Workflow Execute] Workflow started successfully", {
+      executionId,
+      workflowId,
+    });
   } catch (error) {
-    console.error("[Workflow Execute] Error during execution:", error);
-    console.error(
-      "[Workflow Execute] Error stack:",
-      error instanceof Error ? error.stack : "N/A"
-    );
+    logger.error("[Workflow Execute] Error during execution", error);
 
     // Update execution record with error
     await db
       .update(workflowExecutions)
       .set({
         status: "error",
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Execution failed to start",
         completedAt: new Date(),
       })
       .where(eq(workflowExecutions.id, executionId));
@@ -74,6 +71,17 @@ export async function POST(
 
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimit = await enforceRateLimit({
+      key: session.user.id,
+      prefix: "workflow-execute",
+      limit: 30,
+      windowMs: 60_000,
+      message: "Workflow execution rate limit exceeded",
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response;
     }
 
     // Get workflow and verify ownership
@@ -98,19 +106,24 @@ export async function POST(
       session.user.id
     );
     if (!validation.valid) {
-      console.error(
-        "[Workflow Execute] Invalid integration references:",
-        validation.invalidIds
-      );
+      logger.warn("[Workflow Execute] Invalid integration references", {
+        workflowId,
+        invalidIds: validation.invalidIds,
+      });
       return NextResponse.json(
         { error: "Workflow contains invalid integration references" },
         { status: 403 }
       );
     }
 
-    // Parse request body
-    const body = await request.json().catch(() => ({}));
-    const input = body.input || {};
+    const validationResult = await readValidatedJson(
+      request,
+      executeWorkflowSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
+    }
+    const { input } = validationResult.data;
 
     // Create execution record
     const [execution] = await db
@@ -123,7 +136,10 @@ export async function POST(
       })
       .returning();
 
-    console.log("[API] Created execution:", execution.id);
+    logger.info("[Workflow Execute] Created execution", {
+      executionId: execution.id,
+      workflowId,
+    });
 
     // Execute the workflow in the background (don't await)
     executeWorkflowBackground(
@@ -135,18 +151,14 @@ export async function POST(
     );
 
     // Return immediately with the execution ID
-    return NextResponse.json({
-      executionId: execution.id,
-      status: "running",
-    });
-  } catch (error) {
-    console.error("Failed to start workflow execution:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to execute workflow",
+        executionId: execution.id,
+        status: "running",
       },
-      { status: 500 }
+      { headers: rateLimit.headers }
     );
+  } catch (error) {
+    return internalServerError("Failed to start workflow execution", error);
   }
 }

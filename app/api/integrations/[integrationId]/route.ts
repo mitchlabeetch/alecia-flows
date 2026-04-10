@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import {
+  integrationUpdateSchema,
+  readValidatedJson,
+} from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import {
   deleteIntegration,
@@ -59,14 +64,7 @@ export async function GET(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to get integration:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to get integration",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to get integration", error);
   }
 }
 
@@ -88,7 +86,14 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body: UpdateIntegrationRequest = await request.json();
+    const validationResult = await readValidatedJson(
+      request,
+      integrationUpdateSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
+    }
+    const body = validationResult.data as UpdateIntegrationRequest;
 
     const integration = await updateIntegration(
       integrationId,
@@ -114,14 +119,7 @@ export async function PUT(
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to update integration:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to update integration",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to update integration", error);
   }
 }
 
@@ -154,13 +152,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Failed to delete integration:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to delete integration",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to delete integration", error);
   }
 }

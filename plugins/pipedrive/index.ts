@@ -44,8 +44,8 @@ const pipedrivePlugin: IntegrationPlugin = {
   actions: [
     {
       slug: "create-deal",
-      label: "Créer un Deal",
-      description: "Créer un nouveau deal dans Pipedrive",
+      label: "Create Deal",
+      description: "Create a new deal in Pipedrive",
       category: "Pipedrive",
       stepFunction: "createPipedriveDealStep",
       stepImportPath: "create-deal",
@@ -96,8 +96,8 @@ const pipedrivePlugin: IntegrationPlugin = {
     },
     {
       slug: "search-deals",
-      label: "Rechercher des Deals",
-      description: "Rechercher des deals dans Pipedrive",
+      label: "Search Deals",
+      description: "Search for deals in Pipedrive",
       category: "Pipedrive",
       stepFunction: "searchPipedriveDealsStep",
       stepImportPath: "search-deals",
@@ -130,8 +130,8 @@ const pipedrivePlugin: IntegrationPlugin = {
     },
     {
       slug: "create-contact",
-      label: "Créer un Contact",
-      description: "Créer un nouveau contact (personne) dans Pipedrive",
+      label: "Create Contact",
+      description: "Create a new contact in Pipedrive",
       category: "Pipedrive",
       stepFunction: "createPipedriveContactStep",
       stepImportPath: "create-contact",
@@ -174,15 +174,14 @@ const pipedrivePlugin: IntegrationPlugin = {
     },
     {
       slug: "add-note",
-      label: "Ajouter une Note",
-      description:
-        "Ajouter une note à un deal ou contact dans Pipedrive",
+      label: "Add Note",
+      description: "Add a note to a deal or contact in Pipedrive",
       category: "Pipedrive",
       stepFunction: "addPipedriveNoteStep",
       stepImportPath: "add-note",
       outputFields: [
         { field: "id", description: "ID de la note" },
-        { field: "content", description: "Contenu de la note" },
+        { field: "content", description: "Note content" },
       ],
       configFields: [
         {
@@ -212,8 +211,8 @@ const pipedrivePlugin: IntegrationPlugin = {
     },
     {
       slug: "update-deal",
-      label: "Mettre à jour un Deal",
-      description: "Mettre à jour un deal existant dans Pipedrive",
+      label: "Update Deal",
+      description: "Update an existing deal in Pipedrive",
       category: "Pipedrive",
       stepFunction: "updatePipedriveDealStep",
       stepImportPath: "update-deal",

@@ -1,6 +1,10 @@
 import { streamText } from "ai";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import { aiGenerateSchema, readValidatedJson } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
+import { logger } from "@/lib/logger";
+import { enforceRateLimit } from "@/lib/rate-limit";
 import { generateAIActionPrompts } from "@/plugins";
 
 // Simple type for operations
@@ -23,6 +27,19 @@ type Operation = {
     position?: { x: number; y: number };
     data?: unknown;
   };
+};
+
+type ExistingWorkflowNode = {
+  id: string;
+  data?: {
+    label?: string;
+  };
+};
+
+type ExistingWorkflowEdge = {
+  id: string;
+  source: string;
+  target: string;
 };
 
 function encodeMessage(encoder: TextEncoder, message: object): Uint8Array {
@@ -50,7 +67,7 @@ function tryParseAndEnqueueOperation(
     const operation = JSON.parse(trimmed) as Operation;
     const newCount = operationCount + 1;
 
-    console.log(`[API] Operation ${newCount}:`, operation.op);
+    logger.debug(`[AI Generate] Operation ${newCount}: ${operation.op}`);
 
     controller.enqueue(
       encodeMessage(encoder, {
@@ -61,7 +78,10 @@ function tryParseAndEnqueueOperation(
 
     return newCount;
   } catch {
-    console.warn("[API] Skipping invalid JSON line:", trimmed.substring(0, 50));
+    logger.warn(
+      "[AI Generate] Skipping invalid JSON line",
+      trimmed.substring(0, 50)
+    );
     return operationCount;
   }
 }
@@ -119,8 +139,8 @@ async function processOperationStream(
     operationCount
   );
 
-  console.log(
-    `[API] Stream complete. Chunks: ${chunkCount}, Operations: ${operationCount}`
+  logger.debug(
+    `[AI Generate] Stream complete. Chunks: ${chunkCount}, Operations: ${operationCount}`
   );
 
   // Send completion
@@ -256,15 +276,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { prompt, existingWorkflow } = body;
-
-    if (!prompt) {
-      return NextResponse.json(
-        { error: "Prompt is required" },
-        { status: 400 }
-      );
+    const rateLimit = await enforceRateLimit({
+      key: session.user.id,
+      prefix: "ai-generate",
+      limit: 10,
+      windowMs: 60_000,
+      message: "AI workflow generation rate limit exceeded",
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response;
     }
+
+    const validation = await readValidatedJson(request, aiGenerateSchema);
+    if (!validation.success) {
+      return validation.response;
+    }
+    const { prompt, existingWorkflow } = validation.data;
 
     const apiKey = process.env.AI_GATEWAY_API_KEY || process.env.OPENAI_API_KEY;
 
@@ -282,17 +309,17 @@ export async function POST(request: Request) {
     if (existingWorkflow) {
       // Identify nodes and their labels for context
       const nodesList = (existingWorkflow.nodes || [])
-        .map(
-          (n: { id: string; data?: { label?: string } }) =>
-            `- ${n.id} (${n.data?.label || "Unlabeled"})`
-        )
+        .map((node) => {
+          const n = node as unknown as ExistingWorkflowNode;
+          return `- ${n.id} (${n.data?.label || "Unlabeled"})`;
+        })
         .join("\n");
 
       const edgesList = (existingWorkflow.edges || [])
-        .map(
-          (e: { id: string; source: string; target: string }) =>
-            `- ${e.id}: ${e.source} -> ${e.target}`
-        )
+        .map((edge) => {
+          const e = edge as unknown as ExistingWorkflowEdge;
+          return `- ${e.id}: ${e.source} -> ${e.target}`;
+        })
         .join("\n");
 
       userPrompt = `I have an existing workflow. I want you to make ONLY the changes I request.
@@ -337,14 +364,11 @@ Example: If user says "connect node A to node B", output:
         try {
           await processOperationStream(result.textStream, encoder, controller);
           controller.close();
-        } catch (error) {
+        } catch {
           controller.enqueue(
             encodeMessage(encoder, {
               type: "error",
-              error:
-                error instanceof Error
-                  ? error.message
-                  : "Failed to generate workflow",
+              error: "Failed to generate workflow",
             })
           );
           controller.close();
@@ -357,18 +381,10 @@ Example: If user says "connect node A to node B", output:
         "Content-Type": "application/x-ndjson",
         "Cache-Control": "no-cache",
         Connection: "keep-alive",
+        ...Object.fromEntries(rateLimit.headers.entries()),
       },
     });
   } catch (error) {
-    console.error("Failed to generate workflow:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to generate workflow",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to generate workflow", error);
   }
 }

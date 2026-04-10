@@ -817,15 +817,18 @@ export function generateWorkflowCode(
       if (pluginCode) {
         lines.push(...wrapActionCall(pluginCode));
       } else if (outputIsUsed) {
-        // Unknown action type - generate placeholder
-        lines.push(`${indent}// TODO: Implement action type "${actionType}"`);
         lines.push(
-          `${indent}const ${varName} = { status: 'pending', actionType: "${actionType}" };`
+          `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
+        );
+        lines.push(
+          `${indent}const ${varName} = { success: false, error: "Unsupported action type: ${actionType}" };`
         );
       } else {
-        lines.push(`${indent}// TODO: Implement action type "${actionType}"`);
         lines.push(
-          `${indent}void ({ status: 'pending', actionType: "${actionType}" });`
+          `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
+        );
+        lines.push(
+          `${indent}void ({ success: false, error: "Unsupported action type: ${actionType}" });`
         );
       }
     }

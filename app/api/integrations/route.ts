@@ -1,4 +1,9 @@
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
+import {
+  integrationCreateSchema,
+  readValidatedJson,
+} from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { createIntegration, getIntegrations } from "@/lib/db/integrations";
 import type {
@@ -67,14 +72,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to get integrations:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to get integrations",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to get integrations", error);
   }
 }
 
@@ -92,14 +90,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body: CreateIntegrationRequest = await request.json();
-
-    if (!(body.type && body.config)) {
-      return NextResponse.json(
-        { error: "Type and config are required" },
-        { status: 400 }
-      );
+    const validationResult = await readValidatedJson(
+      request,
+      integrationCreateSchema
+    );
+    if (!validationResult.success) {
+      return validationResult.response;
     }
+    const body = validationResult.data as CreateIntegrationRequest;
 
     const integration = await createIntegration(
       session.user.id,
@@ -118,13 +116,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to create integration:", error);
-    return NextResponse.json(
-      {
-        error: "Failed to create integration",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return internalServerError("Failed to create integration", error);
   }
 }

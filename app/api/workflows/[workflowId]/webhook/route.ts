@@ -2,9 +2,13 @@ import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { start } from "workflow/api";
+import { internalServerError } from "@/lib/api/errors";
+import { readValidatedJson, webhookPayloadSchema } from "@/lib/api/validation";
 import { db } from "@/lib/db";
 import { validateWorkflowIntegrations } from "@/lib/db/integrations";
 import { apiKeys, workflowExecutions, workflows } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
+import { enforceRateLimit, getClientIp } from "@/lib/rate-limit";
 import { executeWorkflow } from "@/lib/workflow-executor.workflow";
 import type { WorkflowEdge, WorkflowNode } from "@/lib/workflow-store";
 
@@ -42,6 +46,10 @@ async function validateApiKey(
     return { valid: false, error: "Invalid API key", statusCode: 401 };
   }
 
+  if (apiKey.expiresAt && apiKey.expiresAt <= new Date()) {
+    return { valid: false, error: "API key has expired", statusCode: 401 };
+  }
+
   // Verify the API key belongs to the workflow owner
   if (apiKey.userId !== workflowUserId) {
     return {
@@ -77,12 +85,10 @@ async function executeWorkflowBackground(
   input: Record<string, unknown>
 ) {
   try {
-    console.log("[Webhook] Starting execution:", executionId);
-
-    console.log("[Webhook] Calling executeWorkflow with:", {
+    logger.debug("[Webhook] Starting execution", {
+      executionId,
       nodeCount: nodes.length,
       edgeCount: edges.length,
-      hasExecutionId: !!executionId,
       workflowId,
     });
 
@@ -96,19 +102,18 @@ async function executeWorkflowBackground(
       },
     ]);
 
-    console.log("[Webhook] Workflow started successfully");
+    logger.info("[Webhook] Workflow started successfully", {
+      executionId,
+      workflowId,
+    });
   } catch (error) {
-    console.error("[Webhook] Error during execution:", error);
-    console.error(
-      "[Webhook] Error stack:",
-      error instanceof Error ? error.stack : "N/A"
-    );
+    logger.error("[Webhook] Error during execution", error);
 
     await db
       .update(workflowExecutions)
       .set({
         status: "error",
-        error: error instanceof Error ? error.message : "Unknown error",
+        error: "Execution failed to start",
         completedAt: new Date(),
       })
       .where(eq(workflowExecutions.id, executionId));
@@ -125,6 +130,23 @@ export async function POST(
 ) {
   try {
     const { workflowId } = await context.params;
+    const clientIp = getClientIp(request);
+    const rateLimit = await enforceRateLimit({
+      key: `${workflowId}:${clientIp}`,
+      prefix: "workflow-webhook",
+      limit: 60,
+      windowMs: 60_000,
+      message: "Webhook rate limit exceeded",
+    });
+    if (!rateLimit.success) {
+      return NextResponse.json(await rateLimit.response.json(), {
+        status: rateLimit.response.status,
+        headers: {
+          ...corsHeaders,
+          ...Object.fromEntries(rateLimit.response.headers.entries()),
+        },
+      });
+    }
 
     // Get workflow
     const workflow = await db.query.workflows.findFirst({
@@ -167,18 +189,27 @@ export async function POST(
       workflow.userId
     );
     if (!validation.valid) {
-      console.error(
-        "[Webhook] Invalid integration references:",
-        validation.invalidIds
-      );
+      logger.warn("[Webhook] Invalid integration references", {
+        workflowId,
+        invalidIds: validation.invalidIds,
+      });
       return NextResponse.json(
         { error: "Workflow contains invalid integration references" },
         { status: 403, headers: corsHeaders }
       );
     }
 
-    // Parse request body
-    const body = await request.json().catch(() => ({}));
+    const validationResult = await readValidatedJson(
+      request,
+      webhookPayloadSchema
+    );
+    if (!validationResult.success) {
+      return NextResponse.json(await validationResult.response.json(), {
+        status: validationResult.response.status,
+        headers: corsHeaders,
+      });
+    }
+    const body = validationResult.data;
 
     // Create execution record
     const [execution] = await db
@@ -191,7 +222,10 @@ export async function POST(
       })
       .returning();
 
-    console.log("[Webhook] Created execution:", execution.id);
+    logger.info("[Webhook] Created execution", {
+      executionId: execution.id,
+      workflowId,
+    });
 
     // Execute the workflow in the background (don't await)
     executeWorkflowBackground(
@@ -208,16 +242,21 @@ export async function POST(
         executionId: execution.id,
         status: "running",
       },
-      { headers: corsHeaders }
+      {
+        headers: {
+          ...corsHeaders,
+          ...Object.fromEntries(rateLimit.headers.entries()),
+        },
+      }
     );
   } catch (error) {
-    console.error("[Webhook] Failed to start workflow execution:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Failed to execute workflow",
-      },
-      { status: 500, headers: corsHeaders }
+    const response = internalServerError(
+      "Failed to start webhook workflow execution",
+      error
     );
+    return NextResponse.json(await response.json(), {
+      status: response.status,
+      headers: corsHeaders,
+    });
   }
 }

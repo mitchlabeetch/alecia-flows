@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { api } from "@/lib/api-client";
+import { isInternalWorkflowName } from "@/lib/workflows/constants";
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -12,7 +13,9 @@ export default function WorkflowsPage() {
       try {
         const workflows = await api.workflow.getAll();
         // Filter out the auto-save workflow
-        const filtered = workflows.filter((w) => w.name !== "__current__");
+        const filtered = workflows.filter(
+          (w) => !isInternalWorkflowName(w.name)
+        );
 
         if (filtered.length > 0) {
           // Sort by updatedAt descending to get most recent
