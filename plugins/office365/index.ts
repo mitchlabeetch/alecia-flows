@@ -106,6 +106,14 @@ const office365Plugin: IntegrationPlugin = {
           defaultValue: "Feuil1",
         },
         {
+          key: "tableName",
+          label: "Nom du tableau (requis dans Excel)",
+          type: "template-input",
+          placeholder: "Table1",
+          example: "Table1",
+          defaultValue: "Table1",
+        },
+        {
           key: "rowData",
           label: "Données (JSON tableau)",
           type: "template-textarea",

@@ -14,6 +14,7 @@ type RowResponse = { index: number };
 export type AddExcelRowCoreInput = {
   fileId: string;
   worksheetName?: string;
+  tableName?: string;
   rowData: string;
 };
 
@@ -55,6 +56,7 @@ async function stepHandler(
   try {
     const token = await getToken(credentials);
     const worksheetName = input.worksheetName || "Feuil1";
+    const tableName = input.tableName || "Table1";
 
     let parsedRow: unknown[];
     try {
@@ -64,7 +66,7 @@ async function stepHandler(
     }
 
     const response = await fetch(
-      `https://graph.microsoft.com/v1.0/me/drive/items/${input.fileId}/workbook/worksheets/${worksheetName}/tables/Table1/rows`,
+      `https://graph.microsoft.com/v1.0/me/drive/items/${input.fileId}/workbook/worksheets/${worksheetName}/tables/${tableName}/rows`,
       {
         method: "POST",
         headers: {

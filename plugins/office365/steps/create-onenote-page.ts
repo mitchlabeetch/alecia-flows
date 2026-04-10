@@ -133,11 +133,19 @@ async function stepHandler(
       input.sectionName
     );
 
+    const escapeHtml = (str: string) =>
+      str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    const safeTitle = escapeHtml(input.pageTitle);
     const bodyContent =
-      input.pageContent || `<h1>${input.pageTitle}</h1>`;
+      input.pageContent || `<h1>${safeTitle}</h1>`;
     const htmlContent = [
       "<!DOCTYPE html><html><head>",
-      `<title>${input.pageTitle}</title>`,
+      `<title>${safeTitle}</title>`,
       `</head><body>${bodyContent}</body></html>`,
     ].join("");
 

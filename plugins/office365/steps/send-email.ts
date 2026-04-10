@@ -70,7 +70,7 @@ async function stepHandler(
 
     const message: Record<string, unknown> = {
       subject: input.subject,
-      body: { contentType: "Text", content: input.body },
+      body: { contentType: "text", content: input.body },
       toRecipients,
     };
 
