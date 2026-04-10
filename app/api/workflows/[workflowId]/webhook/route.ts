@@ -113,7 +113,10 @@ async function executeWorkflowBackground(
       .update(workflowExecutions)
       .set({
         status: "error",
-        error: `Execution failed to start (${error instanceof Error ? error.name : "UnknownError"})`,
+        error:
+          error instanceof Error
+            ? `Execution failed to start (${error.name}: ${error.message})`
+            : "Execution failed to start (UnknownError)",
         completedAt: new Date(),
       })
       .where(eq(workflowExecutions.id, executionId));

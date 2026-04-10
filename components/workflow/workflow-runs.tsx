@@ -82,6 +82,14 @@ function getOutputDisplayValue(
 }
 
 function formatDuration(duration: number) {
+  if (duration <= 0) {
+    return "0ms";
+  }
+
+  if (!Number.isFinite(duration)) {
+    return "Unknown";
+  }
+
   return duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(2)}s`;
 }
 

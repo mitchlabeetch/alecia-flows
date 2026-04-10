@@ -6,14 +6,32 @@ const workflowEdgesSchema = z.array(z.record(z.string(), z.unknown()));
 const workflowVisibilitySchema = z.enum(["private", "public"]);
 const integrationConfigSchema = z.record(z.string(), z.unknown());
 const jsonObjectSchema = z.record(z.string(), z.unknown());
+const existingWorkflowNodeSchema = z
+  .object({
+    id: z.string(),
+    data: z
+      .object({
+        label: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+  })
+  .passthrough();
+const existingWorkflowEdgeSchema = z
+  .object({
+    id: z.string(),
+    source: z.string(),
+    target: z.string(),
+  })
+  .passthrough();
 
 export const aiGenerateSchema = z.object({
   prompt: z.string().trim().min(1, "Prompt is required").max(4000),
   existingWorkflow: z
     .object({
       name: z.string().trim().max(255).optional(),
-      nodes: workflowNodesSchema,
-      edges: workflowEdgesSchema,
+      nodes: z.array(existingWorkflowNodeSchema),
+      edges: z.array(existingWorkflowEdgeSchema),
     })
     .optional(),
 });

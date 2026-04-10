@@ -28,6 +28,12 @@ const redis =
 const ratelimiters = new Map<string, Ratelimit>();
 const memoryStore = new Map<string, { count: number; resetAt: number }>();
 
+function formatSlidingWindowDuration(windowMs: number) {
+  return `${Math.ceil(windowMs / 1000)} s` as Parameters<
+    typeof Ratelimit.slidingWindow
+  >[1];
+}
+
 function buildHeaders(limit: number, remaining: number, resetAt: number) {
   const resetSeconds = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
   const headers = new Headers();
@@ -55,7 +61,10 @@ function getRatelimiter(prefix: string, limit: number, windowMs: number) {
 
   const ratelimiter = new Ratelimit({
     redis,
-    limiter: Ratelimit.slidingWindow(limit, `${Math.ceil(windowMs / 1000)} s`),
+    limiter: Ratelimit.slidingWindow(
+      limit,
+      formatSlidingWindowDuration(windowMs)
+    ),
     prefix,
     analytics: true,
   });

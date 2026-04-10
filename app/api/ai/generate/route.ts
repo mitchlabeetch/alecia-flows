@@ -29,19 +29,6 @@ type Operation = {
   };
 };
 
-type ExistingWorkflowNode = {
-  id: string;
-  data?: {
-    label?: string;
-  };
-};
-
-type ExistingWorkflowEdge = {
-  id: string;
-  source: string;
-  target: string;
-};
-
 function encodeMessage(encoder: TextEncoder, message: object): Uint8Array {
   return encoder.encode(`${JSON.stringify(message)}\n`);
 }
@@ -309,17 +296,11 @@ export async function POST(request: Request) {
     if (existingWorkflow) {
       // Identify nodes and their labels for context
       const nodesList = (existingWorkflow.nodes || [])
-        .map((node) => {
-          const n = node as unknown as ExistingWorkflowNode;
-          return `- ${n.id} (${n.data?.label || "Unlabeled"})`;
-        })
+        .map((node) => `- ${node.id} (${node.data?.label || "Unlabeled"})`)
         .join("\n");
 
       const edgesList = (existingWorkflow.edges || [])
-        .map((edge) => {
-          const e = edge as unknown as ExistingWorkflowEdge;
-          return `- ${e.id}: ${e.source} -> ${e.target}`;
-        })
+        .map((edge) => `- ${edge.id}: ${edge.source} -> ${edge.target}`)
         .join("\n");
 
       userPrompt = `I have an existing workflow. I want you to make ONLY the changes I request.

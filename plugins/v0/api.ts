@@ -37,7 +37,7 @@ async function v0Request<T>({
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || `HTTP ${response.status}`);
+    throw new Error(errorText || `v0 API request failed for ${path} (HTTP ${response.status})`);
   }
 
   return (await response.json()) as T;

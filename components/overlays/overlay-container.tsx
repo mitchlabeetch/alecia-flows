@@ -123,6 +123,8 @@ function DesktopOverlayContainer() {
   const currentIndex = renderStack.length - 1;
 
   // Measure content height when it changes, reset on fresh open
+  // Only reacts to open/close transitions; stack mutations while open should not
+  // reset measured height or the frozen stack used for exit animations.
   useLayoutEffect(() => {
     const isFreshOpen = isOpen && !wasOpenRef.current;
     wasOpenRef.current = isOpen;

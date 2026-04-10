@@ -817,16 +817,12 @@ export function generateWorkflowCode(
       if (pluginCode) {
         lines.push(...wrapActionCall(pluginCode));
       } else if (outputIsUsed) {
-        lines.push(
-          `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
-        );
+        lines.push(`${indent}// Unsupported action type fallback.`);
         lines.push(
           `${indent}const ${varName} = { success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} };`
         );
       } else {
-        lines.push(
-          `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
-        );
+        lines.push(`${indent}// Unsupported action type fallback.`);
         lines.push(
           `${indent}void ({ success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} });`
         );
