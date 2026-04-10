@@ -821,14 +821,14 @@ export function generateWorkflowCode(
           `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
         );
         lines.push(
-          `${indent}const ${varName} = { success: false, error: "Unsupported action type: ${actionType}" };`
+          `${indent}const ${varName} = { success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} };`
         );
       } else {
         lines.push(
           `${indent}// Unsupported action type "${actionType}" - no code generation template is available.`
         );
         lines.push(
-          `${indent}void ({ success: false, error: "Unsupported action type: ${actionType}" });`
+          `${indent}void ({ success: false, error: ${JSON.stringify(`Unsupported action type: ${actionType}`)} });`
         );
       }
     }
