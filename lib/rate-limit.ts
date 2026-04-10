@@ -39,10 +39,7 @@ function buildHeaders(limit: number, remaining: number, resetAt: number) {
   const headers = new Headers();
   headers.set("X-RateLimit-Limit", String(limit));
   headers.set("X-RateLimit-Remaining", String(Math.max(remaining, 0)));
-  headers.set(
-    "X-RateLimit-Reset",
-    String(Math.max(Math.floor(resetAt / 1000), 0))
-  );
+  headers.set("X-RateLimit-Reset", String(Math.floor(resetAt / 1000)));
   headers.set("Retry-After", String(resetSeconds));
   return headers;
 }

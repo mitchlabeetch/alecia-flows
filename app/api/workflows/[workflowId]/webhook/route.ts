@@ -142,7 +142,8 @@ export async function POST(
       message: "Webhook rate limit exceeded",
     });
     if (!rateLimit.success) {
-      return NextResponse.json(await rateLimit.response.json(), {
+      const rateLimitBody = await rateLimit.response.json();
+      return NextResponse.json(rateLimitBody, {
         status: rateLimit.response.status,
         headers: {
           ...corsHeaders,

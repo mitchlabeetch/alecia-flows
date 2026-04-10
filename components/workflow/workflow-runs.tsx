@@ -81,7 +81,11 @@ function getOutputDisplayValue(
   return;
 }
 
-function formatDuration(duration: number) {
+function formatDuration(duration: number | null | undefined) {
+  if (duration == null) {
+    return "Unknown";
+  }
+
   if (duration <= 0) {
     return "0ms";
   }
