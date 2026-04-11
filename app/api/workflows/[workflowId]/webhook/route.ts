@@ -70,10 +70,15 @@ async function validateApiKey(
   return { valid: true };
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": process.env.ALLOWED_WEBHOOK_ORIGIN || "",
+const allowedWebhookOrigin = process.env.ALLOWED_WEBHOOK_ORIGIN;
+
+const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Webhook-Timestamp, X-Webhook-Signature",
+  ...(allowedWebhookOrigin
+    ? { "Access-Control-Allow-Origin": allowedWebhookOrigin }
+    : {}),
 };
 
 // biome-ignore lint/nursery/useMaxParams: Background execution requires all workflow context

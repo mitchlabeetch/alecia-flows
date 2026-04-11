@@ -6,16 +6,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 
-function isAdminEmail(email: string): boolean {
-  const adminEmails = process.env.ADMIN_EMAILS;
-  if (!adminEmails) {
-    return false;
-  }
-  return adminEmails
+const adminEmailSet: Set<string> = new Set(
+  (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim())
-    .includes(email);
-}
+    .filter(Boolean)
+);
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({
@@ -32,7 +28,7 @@ export default async function AdminPage() {
 
   const isAdmin =
     dbUser?.role === "admin" ||
-    (session.user.email ? isAdminEmail(session.user.email) : false);
+    (session.user.email ? adminEmailSet.has(session.user.email) : false);
 
   if (!isAdmin) {
     redirect("/");
