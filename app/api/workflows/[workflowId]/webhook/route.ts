@@ -70,6 +70,10 @@ async function validateApiKey(
   return { valid: true };
 }
 
+// When ALLOWED_WEBHOOK_ORIGIN is set, the Access-Control-Allow-Origin header
+// is included in responses to enable browser-originated webhook calls from
+// that specific origin. When unset, no CORS header is emitted, which is the
+// safe default for server-to-server webhook callers.
 const allowedWebhookOrigin = process.env.ALLOWED_WEBHOOK_ORIGIN;
 
 const corsHeaders: Record<string, string> = {

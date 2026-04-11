@@ -6,6 +6,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 
+// Parsed once at module load time from the ADMIN_EMAILS env var.
+// Changes to ADMIN_EMAILS require a server restart to take effect.
 const adminEmailSet: Set<string> = new Set(
   (process.env.ADMIN_EMAILS ?? "")
     .split(",")
