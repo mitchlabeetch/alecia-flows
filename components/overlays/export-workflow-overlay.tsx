@@ -40,9 +40,7 @@ export function ExportWorkflowOverlay({
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         <Download className="size-5" />
-        <p className="text-sm">
-          {t("description")}
-        </p>
+        <p className="text-sm">{t("description")}</p>
       </div>
 
       <p className="mt-4 text-muted-foreground text-sm">

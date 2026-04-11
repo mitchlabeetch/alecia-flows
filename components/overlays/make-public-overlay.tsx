@@ -33,9 +33,7 @@ export function MakePublicOverlay({
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         <Globe className="size-5 shrink-0" />
-        <p className="text-sm">
-          {t("description")}
-        </p>
+        <p className="text-sm">{t("description")}</p>
       </div>
 
       <ul className="mt-3 list-inside list-disc space-y-1 text-muted-foreground text-sm">

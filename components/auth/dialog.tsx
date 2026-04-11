@@ -1,7 +1,7 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
 import { useTranslations } from "next-intl";
+import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,67 +160,69 @@ const EmailForm = ({
 }: EmailFormProps) => {
   const t = useTranslations("AuthDialog");
   return (
-  <div className="space-y-4">
-    <form className="space-y-4" onSubmit={onSubmit}>
-      {mode === "signup" && (
+    <div className="space-y-4">
+      <form className="space-y-4" onSubmit={onSubmit}>
+        {mode === "signup" && (
+          <div className="space-y-2">
+            <Label className="ml-1" htmlFor="name">
+              {t("name")}
+            </Label>
+            <Input
+              id="name"
+              onChange={(e) => onNameChange(e.target.value)}
+              placeholder={t("namePlaceholder")}
+              required
+              type="text"
+              value={name}
+            />
+          </div>
+        )}
         <div className="space-y-2">
-          <Label className="ml-1" htmlFor="name">
-            {t("name")}
+          <Label className="ml-1" htmlFor="email">
+            {t("email")}
           </Label>
           <Input
-            id="name"
-            onChange={(e) => onNameChange(e.target.value)}
-            placeholder={t("namePlaceholder")}
+            id="email"
+            onChange={(e) => onEmailChange(e.target.value)}
+            placeholder={t("emailPlaceholder")}
             required
-            type="text"
-            value={name}
+            type="email"
+            value={email}
           />
         </div>
-      )}
-      <div className="space-y-2">
-        <Label className="ml-1" htmlFor="email">
-          {t("email")}
-        </Label>
-        <Input
-          id="email"
-          onChange={(e) => onEmailChange(e.target.value)}
-          placeholder={t("emailPlaceholder")}
-          required
-          type="email"
-          value={email}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label className="ml-1" htmlFor="password">
-          {t("password")}
-        </Label>
-        <Input
-          id="password"
-          onChange={(e) => onPasswordChange(e.target.value)}
-          placeholder="••••••••"
-          required
-          type="password"
-          value={password}
-        />
-      </div>
-      {error && <div className="text-destructive text-sm">{error}</div>}
-      <Button className="w-full" disabled={loading} type="submit">
-        {loading ? t("loading") : mode === "signup" ? t("signUp") : t("signIn")}
-      </Button>
-    </form>
+        <div className="space-y-2">
+          <Label className="ml-1" htmlFor="password">
+            {t("password")}
+          </Label>
+          <Input
+            id="password"
+            onChange={(e) => onPasswordChange(e.target.value)}
+            placeholder="••••••••"
+            required
+            type="password"
+            value={password}
+          />
+        </div>
+        {error && <div className="text-destructive text-sm">{error}</div>}
+        <Button className="w-full" disabled={loading} type="submit">
+          {loading
+            ? t("loading")
+            : mode === "signup"
+              ? t("signUp")
+              : t("signIn")}
+        </Button>
+      </form>
 
-    <div className="flex justify-center">
-      <button
-        className="text-muted-foreground text-sm hover:text-foreground"
-        onClick={onToggleMode}
-        type="button"
-      >
-        {mode === "signin"
-          ? t("noAccount")
-          : t("alreadyHaveAccount")}
-      </button>
+      <div className="flex justify-center">
+        <button
+          className="text-muted-foreground text-sm hover:text-foreground"
+          onClick={onToggleMode}
+          type="button"
+        >
+          {mode === "signin" ? t("noAccount") : t("alreadyHaveAccount")}
+        </button>
+      </div>
     </div>
-  </div>
   );
 };
 
@@ -241,44 +243,50 @@ const SocialButtons = ({
 }: SocialButtonsProps) => {
   const t = useTranslations("AuthDialog");
   return (
-  <div className="flex flex-col gap-2">
-    {enabledProviders.vercel && (
-      <Button
-        className="w-full"
-        disabled={loadingProvider !== null}
-        onClick={() => onSignIn("vercel")}
-        type="button"
-        variant="outline"
-      >
-        <VercelIcon />
-        {loadingProvider === "vercel" ? t("loading") : t("signInWith", { provider: getProviderLabel("vercel") })}
-      </Button>
-    )}
-    {enabledProviders.github && (
-      <Button
-        className="w-full"
-        disabled={loadingProvider !== null}
-        onClick={() => onSignIn("github")}
-        type="button"
-        variant="outline"
-      >
-        <GitHubIcon />
-        {loadingProvider === "github" ? t("loading") : t("signInWith", { provider: getProviderLabel("github") })}
-      </Button>
-    )}
-    {enabledProviders.google && (
-      <Button
-        className="w-full"
-        disabled={loadingProvider !== null}
-        onClick={() => onSignIn("google")}
-        type="button"
-        variant="outline"
-      >
-        <GoogleIcon />
-        {loadingProvider === "google" ? t("loading") : t("signInWith", { provider: getProviderLabel("google") })}
-      </Button>
-    )}
-  </div>
+    <div className="flex flex-col gap-2">
+      {enabledProviders.vercel && (
+        <Button
+          className="w-full"
+          disabled={loadingProvider !== null}
+          onClick={() => onSignIn("vercel")}
+          type="button"
+          variant="outline"
+        >
+          <VercelIcon />
+          {loadingProvider === "vercel"
+            ? t("loading")
+            : t("signInWith", { provider: getProviderLabel("vercel") })}
+        </Button>
+      )}
+      {enabledProviders.github && (
+        <Button
+          className="w-full"
+          disabled={loadingProvider !== null}
+          onClick={() => onSignIn("github")}
+          type="button"
+          variant="outline"
+        >
+          <GitHubIcon />
+          {loadingProvider === "github"
+            ? t("loading")
+            : t("signInWith", { provider: getProviderLabel("github") })}
+        </Button>
+      )}
+      {enabledProviders.google && (
+        <Button
+          className="w-full"
+          disabled={loadingProvider !== null}
+          onClick={() => onSignIn("google")}
+          type="button"
+          variant="outline"
+        >
+          <GoogleIcon />
+          {loadingProvider === "google"
+            ? t("loading")
+            : t("signInWith", { provider: getProviderLabel("google") })}
+        </Button>
+      )}
+    </div>
   );
 };
 
@@ -478,41 +486,41 @@ const EmailOnlyDialog = ({
 }: EmailOnlyDialogProps) => {
   const t = useTranslations("AuthDialog");
   return (
-  <Dialog onOpenChange={onOpenChange} open={open}>
-    <DialogTrigger asChild>
-      {children || (
-        <Button size="sm" variant="default">
-          {t("signIn")}
-        </Button>
-      )}
-    </DialogTrigger>
-    <DialogContent className="sm:max-w-md">
-      <DialogHeader>
-        <DialogTitle>
-          {mode === "signin" ? t("signIn") : t("createAccount")}
-        </DialogTitle>
-        <DialogDescription>
-          {mode === "signin"
-            ? t("signInEmailDescription")
-            : t("signUpDescription")}
-        </DialogDescription>
-      </DialogHeader>
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogTrigger asChild>
+        {children || (
+          <Button size="sm" variant="default">
+            {t("signIn")}
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === "signin" ? t("signIn") : t("createAccount")}
+          </DialogTitle>
+          <DialogDescription>
+            {mode === "signin"
+              ? t("signInEmailDescription")
+              : t("signUpDescription")}
+          </DialogDescription>
+        </DialogHeader>
 
-      <EmailForm
-        email={email}
-        error={error}
-        loading={loading}
-        mode={mode}
-        name={name}
-        onEmailChange={onEmailChange}
-        onNameChange={onNameChange}
-        onPasswordChange={onPasswordChange}
-        onSubmit={onSubmit}
-        onToggleMode={onToggleMode}
-        password={password}
-      />
-    </DialogContent>
-  </Dialog>
+        <EmailForm
+          email={email}
+          error={error}
+          loading={loading}
+          mode={mode}
+          name={name}
+          onEmailChange={onEmailChange}
+          onNameChange={onNameChange}
+          onPasswordChange={onPasswordChange}
+          onSubmit={onSubmit}
+          onToggleMode={onToggleMode}
+          password={password}
+        />
+      </DialogContent>
+    </Dialog>
   );
 };
 

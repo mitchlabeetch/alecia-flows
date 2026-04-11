@@ -90,7 +90,7 @@ export function AiGatewayConsentOverlay({
       return;
     }
 
-    const selectedTeam = teams.find((t) => t.id === selectedTeamId);
+    const selectedTeam = teams.find((team) => team.id === selectedTeamId);
     const teamName = selectedTeam?.name || "AI Gateway";
 
     setLoading(true);
@@ -175,9 +175,7 @@ export function AiGatewayConsentOverlay({
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
             <Sparkles className="size-5 text-primary" />
           </div>
-          <p className="pt-2 text-muted-foreground text-sm">
-            {t("bodyText")}
-          </p>
+          <p className="pt-2 text-muted-foreground text-sm">{t("bodyText")}</p>
         </div>
 
         <div className="space-y-2">

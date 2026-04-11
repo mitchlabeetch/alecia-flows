@@ -83,10 +83,14 @@ const MultiSelectionPanel = ({
   const selectionParts: string[] = [];
 
   if (selectedNodes.length > 0) {
-    selectionParts.push(`${selectedNodes.length} ${selectedNodes.length === 1 ? "node" : "nodes"}`);
+    selectionParts.push(
+      `${selectedNodes.length} ${selectedNodes.length === 1 ? "node" : "nodes"}`
+    );
   }
   if (selectedEdges.length > 0) {
-    selectionParts.push(`${selectedEdges.length} ${selectedEdges.length === 1 ? "line" : "lines"}`);
+    selectionParts.push(
+      `${selectedEdges.length} ${selectedEdges.length === 1 ? "line" : "lines"}`
+    );
   }
 
   const selectionText = selectionParts.join(" and ");
@@ -134,7 +138,9 @@ const MultiSelectionPanel = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>{t("delete")}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              {t("delete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1055,7 +1061,9 @@ export const PanelInner = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>{t("delete")}</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete}>
+              {t("delete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

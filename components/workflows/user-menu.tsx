@@ -1,8 +1,8 @@
 "use client";
 
 import { Key, LogOut, Moon, Plug, Settings, Sun } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
+import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
   AuthDialog,
@@ -156,8 +156,12 @@ export const UserMenu = () => {
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup onValueChange={setTheme} value={theme}>
-              <DropdownMenuRadioItem value="light">{t("light")}</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">{t("dark")}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="light">
+                {t("light")}
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">
+                {t("dark")}
+              </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system">
                 {t("system")}
               </DropdownMenuRadioItem>

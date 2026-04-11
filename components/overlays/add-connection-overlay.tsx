@@ -257,14 +257,7 @@ export function ConfigureConnectionOverlay({
   const { push, closeAll } = useOverlay();
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    status: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [name, setName] = useState("");
-  const [config, setConfig] = useState<Record<string, string>>({});
-
-  const updateConfig = (key: string, value: string) => {
+  const [_testResult, setTestResult] = useState<{
     setConfig((prev) => ({ ...prev, [key]: value }));
   };
 

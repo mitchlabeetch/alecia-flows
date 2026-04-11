@@ -779,7 +779,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
           type="button"
         >
           <Settings2 className="size-5" />
-{t("properties")}
+          {t("properties")}
         </button>
         {showCodeTab && (
           <button
@@ -790,7 +790,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Code className="size-5" />
-{t("code")}
+            {t("code")}
           </button>
         )}
         {isOwner && (
@@ -802,7 +802,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Play className="size-5" />
-{t("runs")}
+            {t("runs")}
           </button>
         )}
       </div>

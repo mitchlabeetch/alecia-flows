@@ -19,8 +19,8 @@ import {
   Undo2,
 } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -989,7 +989,9 @@ function ToolbarActions({
 
     push(ConfirmOverlay, {
       title: t("deleteNodeOrConnection", { itemType }),
-      message: t("deleteNodeOrConnectionConfirm", { itemType: itemType.toLowerCase() }),
+      message: t("deleteNodeOrConnectionConfirm", {
+        itemType: itemType.toLowerCase(),
+      }),
       confirmLabel: t("delete"),
       confirmVariant: "destructive" as const,
       onConfirm: () => {
@@ -1251,11 +1253,7 @@ function DownloadButton({
       }
       onClick={handleClick}
       size="icon"
-      title={
-        state.isDownloading
-          ? t("preparingDownload")
-          : t("exportWorkflow")
-      }
+      title={state.isDownloading ? t("preparingDownload") : t("exportWorkflow")}
       variant="secondary"
     >
       {state.isDownloading ? (
@@ -1415,7 +1413,9 @@ function WorkflowMenuComponent({
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {state.allWorkflows.length === 0 ? (
-              <DropdownMenuItem disabled>{t("noWorkflowsFound")}</DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                {t("noWorkflowsFound")}
+              </DropdownMenuItem>
             ) : (
               state.allWorkflows
                 .filter((w) => !isInternalWorkflowName(w.name))

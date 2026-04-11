@@ -130,9 +130,7 @@ export function WorkflowIssuesOverlay({
     >
       <div className="flex items-center gap-2 text-orange-500">
         <AlertTriangle className="size-5" />
-        <p className="text-muted-foreground text-sm">
-          {t("issuesWarning")}
-        </p>
+        <p className="text-muted-foreground text-sm">{t("issuesWarning")}</p>
       </div>
 
       <div className="mt-4 space-y-4">
@@ -191,9 +189,8 @@ export function WorkflowIssuesOverlay({
                       key={`${broken.nodeId}-${ref.fieldKey}-${idx}`}
                     >
                       <p className="min-w-0 flex-1 text-muted-foreground text-sm">
-                        <span className="font-mono">{ref.displayText}</span>
-                        {" "}{t("in")}{" "}
-                        {ref.fieldLabel}
+                        <span className="font-mono">{ref.displayText}</span>{" "}
+                        {t("in")} {ref.fieldLabel}
                       </p>
                       <Button
                         className="shrink-0"

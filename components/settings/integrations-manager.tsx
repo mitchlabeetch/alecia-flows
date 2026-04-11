@@ -118,9 +118,7 @@ export function IntegrationsManager({
       }
     } catch (error) {
       console.error("Connection test failed:", error);
-      toast.error(
-        error instanceof Error ? error.message : t("testFailed")
-      );
+      toast.error(error instanceof Error ? error.message : t("testFailed"));
     } finally {
       setTestingId(null);
     }
@@ -138,9 +136,7 @@ export function IntegrationsManager({
     if (integrations.length === 0) {
       return (
         <div className="py-8 text-center">
-          <p className="text-muted-foreground text-sm">
-            {t("noConnections")}
-          </p>
+          <p className="text-muted-foreground text-sm">{t("noConnections")}</p>
         </div>
       );
     }

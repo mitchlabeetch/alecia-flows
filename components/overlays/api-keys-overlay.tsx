@@ -62,7 +62,9 @@ function CreateApiKeyOverlay({
 
   return (
     <Overlay
-      actions={[{ label: t("create"), onClick: handleCreate, loading: creating }]}
+      actions={[
+        { label: t("create"), onClick: handleCreate, loading: creating },
+      ]}
       overlayId={overlayId}
       title={t("createApiKey")}
     >
@@ -210,9 +212,7 @@ export function ApiKeysOverlay({ overlayId }: ApiKeysOverlayProps) {
             <div className="py-8 text-center text-muted-foreground text-sm">
               <Key className="mx-auto mb-2 size-8 opacity-50" />
               <p>{t("noApiKeys")}</p>
-              <p className="text-xs">
-                {t("noApiKeysHint")}
-              </p>
+              <p className="text-xs">{t("noApiKeysHint")}</p>
             </div>
           ) : (
             <div className="space-y-2">

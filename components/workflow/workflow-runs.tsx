@@ -808,7 +808,9 @@ export function WorkflowRuns({
         <div className="mb-3 rounded-lg border border-dashed p-4">
           <Play className="h-6 w-6 text-muted-foreground" />
         </div>
-        <div className="font-medium text-foreground text-sm">{t("noRunsYet")}</div>
+        <div className="font-medium text-foreground text-sm">
+          {t("noRunsYet")}
+        </div>
         <div className="mt-1 text-muted-foreground text-xs">
           {t("executeToSeeRuns")}
         </div>
@@ -876,9 +878,7 @@ export function WorkflowRuns({
                   {executionLogs.length > 0 && (
                     <>
                       <span>•</span>
-                      <span>
-                        {t("step", { count: executionLogs.length })}
-                      </span>
+                      <span>{t("step", { count: executionLogs.length })}</span>
                     </>
                   )}
                 </div>

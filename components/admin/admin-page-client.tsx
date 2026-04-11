@@ -36,12 +36,8 @@ export function AdminPageClient() {
   return (
     <div className="container mx-auto max-w-5xl p-6">
       <div className="mb-8">
-        <h1 className="font-bold text-3xl text-foreground">
-          {t("title")}
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          {t("description")}
-        </p>
+        <h1 className="font-bold text-3xl text-foreground">{t("title")}</h1>
+        <p className="mt-2 text-muted-foreground">{t("description")}</p>
       </div>
 
       <Tabs defaultValue="connections">
@@ -86,9 +82,7 @@ export function AdminPageClient() {
           <Card>
             <CardHeader>
               <CardTitle>{t("designSettings")}</CardTitle>
-              <CardDescription>
-                {t("designSettingsDesc")}
-              </CardDescription>
+              <CardDescription>{t("designSettingsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -151,9 +145,7 @@ export function AdminPageClient() {
           <Card>
             <CardHeader>
               <CardTitle>{t("contentSettings")}</CardTitle>
-              <CardDescription>
-                {t("contentSettingsDesc")}
-              </CardDescription>
+              <CardDescription>{t("contentSettingsDesc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">

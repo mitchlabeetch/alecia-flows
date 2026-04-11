@@ -66,7 +66,9 @@ function SecretField({
         <div className="flex items-center gap-2">
           <div className="flex h-9 flex-1 items-center gap-2 rounded-md border bg-muted/30 px-3">
             <Check className="size-4 text-green-600" />
-            <span className="text-muted-foreground text-sm">{t("configured")}</span>
+            <span className="text-muted-foreground text-sm">
+              {t("configured")}
+            </span>
           </div>
           <Button
             onClick={() => setIsEditing(true)}
@@ -140,11 +142,7 @@ export function EditConnectionOverlay({
   const { push, closeAll } = useOverlay();
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{
-    status: "success" | "error";
-    message: string;
-  } | null>(null);
-  const [name, setName] = useState(integration.name);
+  const [_testResult, setTestResult] = useState<{
   const [config, setConfig] = useState<Record<string, string>>({});
 
   const updateConfig = (key: string, value: string) => {

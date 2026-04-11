@@ -14,4 +14,4 @@ const nextConfig: NextConfig = {
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
-export default withNextIntl(withWorkflow(nextConfig));
+export default withNextIntl(withWorkflow(nextConfig) as NextConfig);
