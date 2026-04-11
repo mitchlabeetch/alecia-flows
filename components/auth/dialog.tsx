@@ -1,6 +1,7 @@
 "use client";
 
 import { type ReactNode, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,13 +131,6 @@ const getProviderLabel = (provider: Provider) => {
   }
 };
 
-const getButtonText = (loading: boolean, mode: "signin" | "signup") => {
-  if (loading) {
-    return "Loading...";
-  }
-  return mode === "signup" ? "Sign Up" : "Sign In";
-};
-
 type EmailFormProps = {
   mode: "signin" | "signup";
   name: string;
@@ -163,18 +157,20 @@ const EmailForm = ({
   onPasswordChange,
   onSubmit,
   onToggleMode,
-}: EmailFormProps) => (
+}: EmailFormProps) => {
+  const t = useTranslations("AuthDialog");
+  return (
   <div className="space-y-4">
     <form className="space-y-4" onSubmit={onSubmit}>
       {mode === "signup" && (
         <div className="space-y-2">
           <Label className="ml-1" htmlFor="name">
-            Name
+            {t("name")}
           </Label>
           <Input
             id="name"
             onChange={(e) => onNameChange(e.target.value)}
-            placeholder="John Doe"
+            placeholder={t("namePlaceholder")}
             required
             type="text"
             value={name}
@@ -183,12 +179,12 @@ const EmailForm = ({
       )}
       <div className="space-y-2">
         <Label className="ml-1" htmlFor="email">
-          Email
+          {t("email")}
         </Label>
         <Input
           id="email"
           onChange={(e) => onEmailChange(e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t("emailPlaceholder")}
           required
           type="email"
           value={email}
@@ -196,7 +192,7 @@ const EmailForm = ({
       </div>
       <div className="space-y-2">
         <Label className="ml-1" htmlFor="password">
-          Password
+          {t("password")}
         </Label>
         <Input
           id="password"
@@ -209,7 +205,7 @@ const EmailForm = ({
       </div>
       {error && <div className="text-destructive text-sm">{error}</div>}
       <Button className="w-full" disabled={loading} type="submit">
-        {getButtonText(loading, mode)}
+        {loading ? t("loading") : mode === "signup" ? t("signUp") : t("signIn")}
       </Button>
     </form>
 
@@ -220,12 +216,13 @@ const EmailForm = ({
         type="button"
       >
         {mode === "signin"
-          ? "Don't have an account? Sign up"
-          : "Already have an account? Sign in"}
+          ? t("noAccount")
+          : t("alreadyHaveAccount")}
       </button>
     </div>
   </div>
-);
+  );
+};
 
 type SocialButtonsProps = {
   enabledProviders: {
@@ -241,7 +238,9 @@ const SocialButtons = ({
   enabledProviders,
   onSignIn,
   loadingProvider,
-}: SocialButtonsProps) => (
+}: SocialButtonsProps) => {
+  const t = useTranslations("AuthDialog");
+  return (
   <div className="flex flex-col gap-2">
     {enabledProviders.vercel && (
       <Button
@@ -252,7 +251,7 @@ const SocialButtons = ({
         variant="outline"
       >
         <VercelIcon />
-        {loadingProvider === "vercel" ? "Loading..." : "Sign In with Vercel"}
+        {loadingProvider === "vercel" ? t("loading") : t("signInWith", { provider: getProviderLabel("vercel") })}
       </Button>
     )}
     {enabledProviders.github && (
@@ -264,7 +263,7 @@ const SocialButtons = ({
         variant="outline"
       >
         <GitHubIcon />
-        {loadingProvider === "github" ? "Loading..." : "Sign In with GitHub"}
+        {loadingProvider === "github" ? t("loading") : t("signInWith", { provider: getProviderLabel("github") })}
       </Button>
     )}
     {enabledProviders.google && (
@@ -276,11 +275,12 @@ const SocialButtons = ({
         variant="outline"
       >
         <GoogleIcon />
-        {loadingProvider === "google" ? "Loading..." : "Sign In with Google"}
+        {loadingProvider === "google" ? t("loading") : t("signInWith", { provider: getProviderLabel("google") })}
       </Button>
     )}
   </div>
-);
+  );
+};
 
 type UseAuthHandlers = {
   handleSocialSignIn: (
@@ -303,6 +303,7 @@ type AuthHandlersOptions = {
 };
 
 const useAuthHandlers = (options: AuthHandlersOptions): UseAuthHandlers => {
+  const t = useTranslations("AuthDialog");
   const {
     mode,
     setMode,
@@ -322,7 +323,7 @@ const useAuthHandlers = (options: AuthHandlersOptions): UseAuthHandlers => {
       setLoadingProvider(provider);
       await signIn.social({ provider, callbackURL: window.location.pathname });
     } catch {
-      toast.error(`Failed to sign in with ${getProviderLabel(provider)}`);
+      toast.error(t("signInFailed", { provider: getProviderLabel(provider) }));
       setLoadingProvider(null);
     }
   };
@@ -352,7 +353,7 @@ const useAuthHandlers = (options: AuthHandlersOptions): UseAuthHandlers => {
       return false;
     }
 
-    toast.success("Account created and signed in successfully!");
+    toast.success(t("accountCreated"));
     return true;
   };
 
@@ -366,7 +367,7 @@ const useAuthHandlers = (options: AuthHandlersOptions): UseAuthHandlers => {
       return false;
     }
 
-    toast.success("Signed in successfully!");
+    toast.success(t("signedIn"));
     return true;
   };
 
@@ -413,6 +414,7 @@ const SingleProviderButton = ({
   loadingProvider,
   onSignIn,
 }: SingleProviderButtonProps) => {
+  const t = useTranslations("AuthDialog");
   // Use state to trigger re-renders, but sync with module-level flag
   const [isInitiated, setIsInitiated] = useState(singleProviderSignInInitiated);
   const isLoading = loadingProvider === provider || isInitiated;
@@ -436,7 +438,7 @@ const SingleProviderButton = ({
       ) : (
         getProviderIcon(provider, true)
       )}
-      <span className="text-sm">Sign In</span>
+      <span className="text-sm">{t("signIn")}</span>
     </Button>
   );
 };
@@ -473,24 +475,26 @@ const EmailOnlyDialog = ({
   onPasswordChange,
   onSubmit,
   onToggleMode,
-}: EmailOnlyDialogProps) => (
+}: EmailOnlyDialogProps) => {
+  const t = useTranslations("AuthDialog");
+  return (
   <Dialog onOpenChange={onOpenChange} open={open}>
     <DialogTrigger asChild>
       {children || (
         <Button size="sm" variant="default">
-          Sign In
+          {t("signIn")}
         </Button>
       )}
     </DialogTrigger>
     <DialogContent className="sm:max-w-md">
       <DialogHeader>
         <DialogTitle>
-          {mode === "signin" ? "Sign In" : "Create Account"}
+          {mode === "signin" ? t("signIn") : t("createAccount")}
         </DialogTitle>
         <DialogDescription>
           {mode === "signin"
-            ? "Sign in to your account to continue"
-            : "Create a new account to get started"}
+            ? t("signInEmailDescription")
+            : t("signUpDescription")}
         </DialogDescription>
       </DialogHeader>
 
@@ -509,7 +513,8 @@ const EmailOnlyDialog = ({
       />
     </DialogContent>
   </Dialog>
-);
+  );
+};
 
 type MultiProviderDialogProps = EmailOnlyDialogProps & {
   enabledProviders: {
@@ -541,6 +546,7 @@ const MultiProviderDialog = ({
   onToggleMode,
   onSignIn,
 }: MultiProviderDialogProps) => {
+  const t = useTranslations("AuthDialog");
   const hasSocialProviders =
     enabledProviders.vercel ||
     enabledProviders.github ||
@@ -551,19 +557,19 @@ const MultiProviderDialog = ({
       <DialogTrigger asChild>
         {children || (
           <Button size="sm" variant="default">
-            Sign In
+            {t("signIn")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {mode === "signin" ? "Sign In" : "Create Account"}
+            {mode === "signin" ? t("signIn") : t("createAccount")}
           </DialogTitle>
           <DialogDescription>
             {mode === "signin"
-              ? "Choose how you want to sign in to continue"
-              : "Create a new account to get started"}
+              ? t("signInDescription")
+              : t("signUpDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -583,7 +589,7 @@ const MultiProviderDialog = ({
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Or Sign In with email
+                  {t("orSignInWithEmail")}
                 </span>
               </div>
             </div>

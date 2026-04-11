@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { memo, useState } from "react";
 import {
   Node,
@@ -242,6 +243,7 @@ type ActionNodeProps = NodeProps & {
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex UI logic with multiple conditions including disabled state
 export const ActionNode = memo(({ data, selected, id }: ActionNodeProps) => {
+  const t = useTranslations("ActionNode");
   const selectedExecutionId = useAtomValue(selectedExecutionIdAtom);
   const executionLogs = useAtomValue(executionLogsAtom);
   const pendingIntegrationNodes = useAtomValue(pendingIntegrationNodesAtom);
@@ -286,10 +288,10 @@ export const ActionNode = memo(({ data, selected, id }: ActionNodeProps) => {
           <Zap className="size-12 text-muted-foreground" strokeWidth={1.5} />
           <div className="flex flex-col items-center gap-1 text-center">
             <NodeTitle className="text-base">
-              {data.label || "Action"}
+              {data.label || t("action")}
             </NodeTitle>
             <NodeDescription className="text-xs">
-              Select an action
+              {t("selectAction")}
             </NodeDescription>
           </div>
         </div>

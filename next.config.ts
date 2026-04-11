@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { withWorkflow } from "workflow/next";
 import { validateRequiredEnvVars } from "./lib/env-validation";
 
@@ -11,4 +12,6 @@ const nextConfig: NextConfig = {
   /* config options here */
 };
 
-export default withWorkflow(nextConfig);
+const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
+
+export default withNextIntl(withWorkflow(nextConfig));

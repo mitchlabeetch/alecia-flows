@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,29 +16,30 @@ export function AccountSettings({
   onNameChange,
   onEmailChange,
 }: AccountSettingsProps) {
+  const t = useTranslations("AccountSettings");
   return (
     <Card className="border-0 py-0 shadow-none">
       <CardContent className="space-y-4 p-0">
         <div className="space-y-2">
           <Label className="ml-1" htmlFor="accountName">
-            Name
+            {t("name")}
           </Label>
           <Input
             id="accountName"
             onChange={(e) => onNameChange(e.target.value)}
-            placeholder="Your name"
+            placeholder={t("namePlaceholder")}
             value={accountName}
           />
         </div>
 
         <div className="space-y-2">
           <Label className="ml-1" htmlFor="accountEmail">
-            Email
+            {t("email")}
           </Label>
           <Input
             id="accountEmail"
             onChange={(e) => onEmailChange(e.target.value)}
-            placeholder="your.email@example.com"
+            placeholder={t("emailPlaceholder")}
             type="email"
             value={accountEmail}
           />

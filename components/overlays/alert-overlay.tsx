@@ -6,6 +6,7 @@ import {
   InfoIcon,
   XCircleIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Overlay } from "./overlay";
 import { useOverlay } from "./overlay-provider";
@@ -84,9 +85,10 @@ export function AlertOverlay({
   title,
   message,
   variant = "info",
-  dismissLabel = "OK",
+  dismissLabel,
   onDismiss,
 }: AlertOverlayProps) {
+  const t = useTranslations("AlertOverlay");
   const { pop } = useOverlay();
 
   const handleDismiss = () => {
@@ -99,7 +101,7 @@ export function AlertOverlay({
 
   const actions: OverlayAction[] = [
     {
-      label: dismissLabel,
+      label: dismissLabel ?? t("ok"),
       onClick: handleDismiss,
     },
   ];

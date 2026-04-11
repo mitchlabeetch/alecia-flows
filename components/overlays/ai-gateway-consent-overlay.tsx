@@ -2,6 +2,7 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { Loader2, Sparkles, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { Label } from "@/components/ui/label";
 import {
@@ -56,6 +57,7 @@ export function AiGatewayConsentOverlay({
   onManualEntry,
   onDecline,
 }: AiGatewayConsentOverlayProps) {
+  const t = useTranslations("AiGatewayConsentOverlay");
   const { pop } = useOverlay();
   const setStatus = useSetAtom(aiGatewayStatusAtom);
   const [loading, setLoading] = useState(false);
@@ -84,7 +86,7 @@ export function AiGatewayConsentOverlay({
 
   const handleConsent = useCallback(async () => {
     if (!selectedTeamId) {
-      setError("Please select a team");
+      setError(t("pleaseSelectTeam"));
       return;
     }
 
@@ -98,7 +100,7 @@ export function AiGatewayConsentOverlay({
       const result = await api.aiGateway.consent(selectedTeamId, teamName);
 
       if (!result.success) {
-        throw new Error(result.error || "Failed to set up AI Gateway");
+        throw new Error(result.error || t("setupFailed"));
       }
 
       const integrationId = result.managedIntegrationId || "";
@@ -118,10 +120,10 @@ export function AiGatewayConsentOverlay({
       // and is definitely valid. Testing would require decryption which adds complexity.
       completeConsent(integrationId);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "An error occurred");
+      setError(e instanceof Error ? e.message : t("errorOccurred"));
       setLoading(false);
     }
-  }, [selectedTeamId, teams, setStatus, completeConsent]);
+  }, [selectedTeamId, teams, setStatus, completeConsent, t]);
 
   const handleDecline = useCallback(() => {
     onDecline?.();
@@ -138,7 +140,7 @@ export function AiGatewayConsentOverlay({
     ...(onManualEntry
       ? [
           {
-            label: "Enter manually",
+            label: t("enterManually"),
             variant: "ghost" as const,
             onClick: handleManualEntry,
             disabled: loading,
@@ -146,13 +148,13 @@ export function AiGatewayConsentOverlay({
         ]
       : []),
     {
-      label: "Cancel",
+      label: t("cancel"),
       variant: "outline" as const,
       onClick: handleDecline,
       disabled: loading,
     },
     {
-      label: loading ? "Setting up..." : "Agree & Connect",
+      label: loading ? t("settingUp") : t("agreeAndConnect"),
       variant: "default" as const,
       onClick: handleConsent,
       disabled:
@@ -164,9 +166,9 @@ export function AiGatewayConsentOverlay({
   return (
     <Overlay
       actions={actions}
-      description="Connect your Vercel account to use your own AI Gateway balance"
+      description={t("description")}
       overlayId={overlayId}
-      title="Use Your AI Gateway Credits"
+      title={t("title")}
     >
       <div className="space-y-4">
         <div className="flex items-start gap-3">
@@ -174,17 +176,16 @@ export function AiGatewayConsentOverlay({
             <Sparkles className="size-5 text-primary" />
           </div>
           <p className="pt-2 text-muted-foreground text-sm">
-            This will create an API key on your Vercel account that uses your AI
-            Gateway credits for AI operations in workflows.
+            {t("bodyText")}
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="team-select">Vercel Team</Label>
+          <Label htmlFor="team-select">{t("vercelTeam")}</Label>
           {teamsLoading && teams.length === 0 ? (
             <div className="flex h-10 items-center gap-2 rounded-md border px-3 text-muted-foreground text-sm">
               <Loader2 className="size-4 animate-spin" />
-              Loading teams...
+              {t("loadingTeams")}
             </div>
           ) : (
             <Select
@@ -193,7 +194,7 @@ export function AiGatewayConsentOverlay({
               value={selectedTeamId}
             >
               <SelectTrigger id="team-select">
-                <SelectValue placeholder="Select a team" />
+                <SelectValue placeholder={t("selectTeam")} />
               </SelectTrigger>
               <SelectContent>
                 {teams.map((team, index) => (
@@ -214,7 +215,7 @@ export function AiGatewayConsentOverlay({
                         <span>{team.name}</span>
                         {team.isPersonal && (
                           <span className="text-muted-foreground text-xs">
-                            (Personal)
+                            {t("personal")}
                           </span>
                         )}
                       </div>

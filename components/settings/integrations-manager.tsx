@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -28,6 +29,7 @@ export function IntegrationsManager({
   onIntegrationChange,
   filter = "",
 }: IntegrationsManagerProps) {
+  const t = useTranslations("IntegrationsManager");
   const { push } = useOverlay();
   const [integrations, setIntegrations] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,11 +42,11 @@ export function IntegrationsManager({
       setIntegrations(data);
     } catch (error) {
       console.error("Failed to load integrations:", error);
-      toast.error("Failed to load integrations");
+      toast.error(t("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadIntegrations();
@@ -110,14 +112,14 @@ export function IntegrationsManager({
       const result = await api.integration.testConnection(id);
 
       if (result.status === "success") {
-        toast.success(result.message || "Connection successful");
+        toast.success(result.message || t("testSuccess"));
       } else {
-        toast.error(result.message || "Connection test failed");
+        toast.error(result.message || t("testFailed"));
       }
     } catch (error) {
       console.error("Connection test failed:", error);
       toast.error(
-        error instanceof Error ? error.message : "Connection test failed"
+        error instanceof Error ? error.message : t("testFailed")
       );
     } finally {
       setTestingId(null);
@@ -137,7 +139,7 @@ export function IntegrationsManager({
       return (
         <div className="py-8 text-center">
           <p className="text-muted-foreground text-sm">
-            No connections configured yet
+            {t("noConnections")}
           </p>
         </div>
       );
@@ -147,7 +149,7 @@ export function IntegrationsManager({
       return (
         <div className="py-8 text-center">
           <p className="text-muted-foreground text-sm">
-            No connections match your filter
+            {t("noConnectionsMatch")}
           </p>
         </div>
       );
@@ -185,7 +187,7 @@ export function IntegrationsManager({
                 {testingId === integration.id ? (
                   <Spinner className="size-3" />
                 ) : (
-                  <span className="text-xs">Test</span>
+                  <span className="text-xs">{t("test")}</span>
                 )}
               </Button>
               <Button

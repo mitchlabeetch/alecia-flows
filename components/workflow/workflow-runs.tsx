@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { JSX } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api-client";
@@ -534,6 +535,7 @@ export function WorkflowRuns({
   onRefreshRef,
   onStartRun,
 }: WorkflowRunsProps) {
+  const t = useTranslations("WorkflowRuns");
   const [currentWorkflowId] = useAtom(currentWorkflowIdAtom);
   const [selectedExecutionId, setSelectedExecutionId] = useAtom(
     selectedExecutionIdAtom
@@ -806,9 +808,9 @@ export function WorkflowRuns({
         <div className="mb-3 rounded-lg border border-dashed p-4">
           <Play className="h-6 w-6 text-muted-foreground" />
         </div>
-        <div className="font-medium text-foreground text-sm">No runs yet</div>
+        <div className="font-medium text-foreground text-sm">{t("noRunsYet")}</div>
         <div className="mt-1 text-muted-foreground text-xs">
-          Execute your workflow to see runs here
+          {t("executeToSeeRuns")}
         </div>
       </div>
     );
@@ -858,7 +860,7 @@ export function WorkflowRuns({
               >
                 <div className="mb-1 flex items-center gap-2">
                   <span className="font-semibold text-sm">
-                    Run #{executions.length - index}
+                    {t("run", { number: executions.length - index })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 font-mono text-muted-foreground text-xs">
@@ -875,8 +877,7 @@ export function WorkflowRuns({
                     <>
                       <span>•</span>
                       <span>
-                        {executionLogs.length}{" "}
-                        {executionLogs.length === 1 ? "step" : "steps"}
+                        {t("step", { count: executionLogs.length })}
                       </span>
                     </>
                   )}
@@ -900,7 +901,7 @@ export function WorkflowRuns({
               <div className="border-t bg-muted/20">
                 {executionLogs.length === 0 ? (
                   <div className="py-8 text-center text-muted-foreground text-xs">
-                    No steps recorded
+                    {t("noStepsRecorded")}
                   </div>
                 ) : (
                   <div className="p-4">

@@ -3,6 +3,7 @@
 import { useReactFlow } from "@xyflow/react";
 import { useAtom, useAtomValue } from "jotai";
 import { ArrowUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Shimmer } from "@/components/ai-elements/shimmer";
@@ -23,6 +24,7 @@ type AIPromptProps = {
 };
 
 export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
+  const t = useTranslations("AIPrompt");
   const [isGenerating, setIsGenerating] = useAtom(isGeneratingAtom);
   const [prompt, setPrompt] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
@@ -212,7 +214,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
           // State already updated by streaming callback
           setCurrentWorkflowId(newWorkflow.id);
 
-          toast.success("Created workflow");
+          toast.success(t("workflowCreated"));
 
           // Notify parent component to redirect
           if (onWorkflowCreated) {
@@ -237,7 +239,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
           } else {
             console.log("[AI Prompt] Setting workflow for empty canvas");
 
-            toast.success("Generated workflow");
+            toast.success(t("workflowGenerated"));
           }
 
           const selectedNode = workflowData.nodes?.find(
@@ -263,7 +265,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
         inputRef.current?.blur();
       } catch (error) {
         console.error("Failed to generate workflow:", error);
-        toast.error("Failed to generate workflow");
+        toast.error(t("generateFailed"));
       } finally {
         setIsGenerating(false);
       }
@@ -299,7 +301,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
       >
         <form
           aria-busy={isGenerating}
-          aria-label="AI workflow prompt"
+          aria-label={t("formLabel")}
           className="relative flex items-center gap-2 rounded-lg border bg-background pl-3 pr-2 py-2 shadow-lg cursor-text"
           onClick={(e) => {
             // Focus textarea when clicking anywhere in the form (including padding)
@@ -322,7 +324,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
             </Shimmer>
           ) : (
             <textarea
-              aria-label="Describe your workflow"
+              aria-label={t("label")}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground resize-none h-[22px] min-h-[22px] max-h-[200px] py-0 leading-[22px]"
               disabled={isGenerating}
               onBlur={handleBlur}
@@ -344,18 +346,18 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
                   inputRef.current?.blur();
                 }
               }}
-              placeholder={isFocused ? "Describe your workflow with natural language..." : "Ask AI..."}
+              placeholder={isFocused ? t("placeholder") : t("placeholderShort")}
               ref={inputRef}
               rows={1}
               value={prompt}
             />
           )}
           <div className="sr-only">
-            {isGenerating ? "Generating workflow, please wait..." : ""}
+            {isGenerating ? t("generatingStatus") : ""}
           </div>
           <div className="relative size-8 shrink-0 self-end">
             <Button
-              aria-label="Focus prompt input (⌘K)"
+              aria-label={t("focusShortcut")}
               className="absolute inset-0 h-8 px-0 text-xs text-muted-foreground hover:bg-transparent transition-[opacity,filter] ease-out"
               onClick={() => inputRef.current?.focus()}
               style={
@@ -371,7 +373,7 @@ export function AIPrompt({ workflowId, onWorkflowCreated }: AIPromptProps) {
               </kbd>
             </Button>
             <Button
-              aria-label={isGenerating ? "Generating workflow..." : "Generate workflow"}
+              aria-label={isGenerating ? t("generating") : t("generate")}
               className="size-8 transition-[opacity,filter] ease-out shrink-0"
               disabled={!prompt.trim() || isGenerating}
               size="sm"

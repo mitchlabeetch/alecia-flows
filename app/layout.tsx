@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Provider } from "jotai";
+import { getLocale } from "next-intl/server";
 import { type ReactNode, Suspense } from "react";
 import { AuthProvider } from "@/components/auth/provider";
 import { GitHubStarsLoader } from "@/components/github-stars-loader";
@@ -19,7 +20,7 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Alecia Flows",
   description:
-    "Build, automate, and deploy intelligent workflows with a visual node-based platform.",
+    "Construisez, automatisez et déployez des workflows intelligents avec une plateforme visuelle.",
 };
 
 export const viewport: Viewport = {
@@ -44,39 +45,43 @@ function LayoutContent({ children }: { children: ReactNode }) {
   );
 }
 
-const RootLayout = ({ children }: RootLayoutProps) => (
-  <html lang="en" suppressHydrationWarning>
-    <body className={cn(sans.variable, mono.variable, "antialiased")}>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        disableTransitionOnChange
-        enableSystem
-      >
-        <Provider>
-          <AuthProvider>
-            <OverlayProvider>
-              <Suspense
-                fallback={
-                  <GitHubStarsProvider stars={null}>
+const RootLayout = async ({ children }: RootLayoutProps) => {
+  const locale = await getLocale();
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body className={cn(sans.variable, mono.variable, "antialiased")}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          disableTransitionOnChange
+          enableSystem
+        >
+          <Provider>
+            <AuthProvider>
+              <OverlayProvider>
+                <Suspense
+                  fallback={
+                    <GitHubStarsProvider stars={null}>
+                      <LayoutContent>{children}</LayoutContent>
+                    </GitHubStarsProvider>
+                  }
+                >
+                  <GitHubStarsLoader>
                     <LayoutContent>{children}</LayoutContent>
-                  </GitHubStarsProvider>
-                }
-              >
-                <GitHubStarsLoader>
-                  <LayoutContent>{children}</LayoutContent>
-                </GitHubStarsLoader>
-              </Suspense>
-              <Toaster />
-              <GlobalModals />
-            </OverlayProvider>
-          </AuthProvider>
-        </Provider>
-      </ThemeProvider>
-      <Analytics />
-      <SpeedInsights />
-    </body>
-  </html>
-);
+                  </GitHubStarsLoader>
+                </Suspense>
+                <Toaster />
+                <GlobalModals />
+              </OverlayProvider>
+            </AuthProvider>
+          </Provider>
+        </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+};
 
 export default RootLayout;

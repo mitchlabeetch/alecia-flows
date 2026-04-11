@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertTriangleIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Overlay } from "./overlay";
 import { useOverlay } from "./overlay-provider";
@@ -47,16 +48,21 @@ type ConfirmOverlayProps = {
  */
 export function ConfirmOverlay({
   overlayId,
-  title = "Confirm",
+  title,
   message,
-  confirmLabel = "Confirm",
-  cancelLabel = "Cancel",
+  confirmLabel,
+  cancelLabel,
   confirmVariant = "default",
   destructive = false,
   onConfirm,
   onCancel,
 }: ConfirmOverlayProps) {
+  const t = useTranslations("ConfirmOverlay");
   const { pop } = useOverlay();
+
+  const resolvedTitle = title ?? t("confirm");
+  const resolvedConfirmLabel = confirmLabel ?? t("confirm");
+  const resolvedCancelLabel = cancelLabel ?? t("cancel");
 
   const handleCancel = () => {
     onCancel?.();
@@ -70,19 +76,19 @@ export function ConfirmOverlay({
 
   const actions: OverlayAction[] = [
     {
-      label: cancelLabel,
+      label: resolvedCancelLabel,
       variant: "outline",
       onClick: handleCancel,
     },
     {
-      label: confirmLabel,
+      label: resolvedConfirmLabel,
       variant: destructive ? "destructive" : confirmVariant,
       onClick: handleConfirm,
     },
   ];
 
   return (
-    <Overlay actions={actions} overlayId={overlayId} title={title}>
+    <Overlay actions={actions} overlayId={overlayId} title={resolvedTitle}>
       <div className="flex gap-4">
         {destructive && (
           <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-destructive/10">
