@@ -43,6 +43,13 @@
       "when": 1775812587861,
       "tag": "0005_friendly_sway",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775918734458,
+      "tag": "0006_tearful_madripoor",
+      "breakpoints": true
     }
   ]
 }

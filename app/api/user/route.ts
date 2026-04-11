@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { internalServerError } from "@/lib/api/errors";
+import { readValidatedJson, userUpdateSchema } from "@/lib/api/validation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accounts, users } from "@/lib/db/schema";
@@ -74,14 +75,18 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const body = await request.json();
-    const updates: { name?: string; email?: string } = {};
-
-    if (body.name !== undefined) {
-      updates.name = body.name;
+    const validationResult = await readValidatedJson(request, userUpdateSchema);
+    if (!validationResult.success) {
+      return validationResult.response;
     }
-    if (body.email !== undefined) {
-      updates.email = body.email;
+    const { name, email } = validationResult.data;
+
+    const updates: { name?: string; email?: string } = {};
+    if (name !== undefined) {
+      updates.name = name;
+    }
+    if (email !== undefined) {
+      updates.email = email;
     }
 
     await db.update(users).set(updates).where(eq(users.id, session.user.id));

@@ -4,6 +4,7 @@ import type { Edge, Node, XYPosition } from "@xyflow/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Link2Off, Plus, Trash2 } from "lucide-react";
 import { nanoid } from "nanoid";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef } from "react";
 import { ConfirmOverlay } from "@/components/overlays/confirm-overlay";
 import { useOverlay } from "@/components/overlays/overlay-provider";
@@ -37,6 +38,7 @@ export function WorkflowContextMenu({
   menuState,
   onClose,
 }: WorkflowContextMenuProps) {
+  const t = useTranslations("WorkflowContextMenu");
   const nodes = useAtomValue(nodesAtom);
   const deleteNode = useSetAtom(deleteNodeAtom);
   const deleteEdge = useSetAtom(deleteEdgeAtom);
@@ -51,34 +53,32 @@ export function WorkflowContextMenu({
       const nodeId = menuState.nodeId;
       onClose();
       openOverlay(ConfirmOverlay, {
-        title: "Delete Step",
-        message:
-          "Are you sure you want to delete this node? This action cannot be undone.",
-        confirmLabel: "Delete",
+        title: t("deleteStep", { label: getNodeLabel() }),
+        message: t("deleteStepConfirm"),
+        confirmLabel: t("delete"),
         confirmVariant: "destructive" as const,
         onConfirm: () => {
           deleteNode(nodeId);
         },
       });
     }
-  }, [menuState, deleteNode, onClose, openOverlay]);
+  }, [menuState, deleteNode, onClose, openOverlay, t]);
 
   const handleDeleteEdge = useCallback(() => {
     if (menuState?.edgeId) {
       const edgeId = menuState.edgeId;
       onClose();
       openOverlay(ConfirmOverlay, {
-        title: "Delete Connection",
-        message:
-          "Are you sure you want to delete this connection? This action cannot be undone.",
-        confirmLabel: "Delete",
+        title: t("deleteConnection"),
+        message: t("deleteConnectionConfirm"),
+        confirmLabel: t("delete"),
         confirmVariant: "destructive" as const,
         onConfirm: () => {
           deleteEdge(edgeId);
         },
       });
     }
-  }, [menuState, deleteEdge, onClose, openOverlay]);
+  }, [menuState, deleteEdge, onClose, openOverlay, t]);
 
   const handleAddStep = useCallback(() => {
     if (menuState?.flowPosition) {
@@ -171,7 +171,7 @@ export function WorkflowContextMenu({
         <MenuItem
           disabled={isTriggerNode}
           icon={<Trash2 className="size-4" />}
-          label={`Delete ${getNodeLabel()}`}
+          label={t("deleteStep", { label: getNodeLabel() })}
           onClick={handleDeleteNode}
           variant="destructive"
         />
@@ -180,7 +180,7 @@ export function WorkflowContextMenu({
       {menuState.type === "edge" && (
         <MenuItem
           icon={<Link2Off className="size-4" />}
-          label="Delete Connection"
+          label={t("deleteConnection")}
           onClick={handleDeleteEdge}
           variant="destructive"
         />
@@ -189,7 +189,7 @@ export function WorkflowContextMenu({
       {menuState.type === "pane" && (
         <MenuItem
           icon={<Plus className="size-4" />}
-          label="Add Step"
+          label={t("addStep")}
           onClick={handleAddStep}
         />
       )}

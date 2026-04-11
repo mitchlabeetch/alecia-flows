@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -724,6 +725,7 @@ function useWorkflowState() {
 // Hook for workflow actions
 function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
   const { open: openOverlay } = useOverlay();
+  const t = useTranslations("WorkflowToolbar");
   const {
     currentWorkflowId,
     workflowName,
@@ -778,10 +780,9 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
 
   const handleClearWorkflow = () => {
     openOverlay(ConfirmOverlay, {
-      title: "Clear Workflow",
-      message:
-        "Are you sure you want to clear all nodes and connections? This action cannot be undone.",
-      confirmLabel: "Clear Workflow",
+      title: t("clearWorkflow"),
+      message: t("clearWorkflowConfirm"),
+      confirmLabel: t("clearWorkflow"),
       confirmVariant: "destructive" as const,
       destructive: true,
       onConfirm: () => {
@@ -792,9 +793,9 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
 
   const handleDeleteWorkflow = () => {
     openOverlay(ConfirmOverlay, {
-      title: "Delete Workflow",
-      message: `Are you sure you want to delete "${workflowName}"? This will permanently delete the workflow. This cannot be undone.`,
-      confirmLabel: "Delete Workflow",
+      title: t("deleteWorkflow"),
+      message: t("deleteWorkflowConfirm", { name: workflowName }),
+      confirmLabel: t("deleteWorkflow"),
       confirmVariant: "destructive" as const,
       destructive: true,
       onConfirm: async () => {
@@ -803,11 +804,11 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
         }
         try {
           await api.workflow.delete(currentWorkflowId);
-          toast.success("Workflow deleted successfully");
+          toast.success(t("workflowDeleted"));
           window.location.href = "/";
         } catch (error) {
           console.error("Failed to delete workflow:", error);
-          toast.error("Failed to delete workflow. Please try again.");
+          toast.error(t("workflowDeleteFailed"));
         }
       },
     });
@@ -815,12 +816,12 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
 
   const handleDownload = async () => {
     if (!currentWorkflowId) {
-      toast.error("Please save the workflow before downloading");
+      toast.error(t("saveBefore"));
       return;
     }
 
     setIsDownloading(true);
-    toast.info("Preparing workflow files for download...");
+    toast.info(t("preparingWorkflowFiles"));
 
     try {
       const result = await api.workflow.download(currentWorkflowId);
@@ -855,7 +856,7 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      toast.success("Workflow downloaded successfully!");
+      toast.success(t("workflowDownloaded"));
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to download workflow"
@@ -888,10 +889,10 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
               visibility: "public",
             });
             setWorkflowVisibility("public");
-            toast.success("Workflow is now public");
+            toast.success(t("workflowNowPublic"));
           } catch (error) {
             console.error("Failed to update visibility:", error);
-            toast.error("Failed to update visibility. Please try again.");
+            toast.error(t("visibilityUpdateFailed"));
           }
         },
       });
@@ -904,10 +905,10 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
         visibility: newVisibility,
       });
       setWorkflowVisibility(newVisibility);
-      toast.success("Workflow is now private");
+      toast.success(t("workflowNowPrivate"));
     } catch (error) {
       console.error("Failed to update visibility:", error);
-      toast.error("Failed to update visibility. Please try again.");
+      toast.error(t("visibilityUpdateFailed"));
     }
   };
 
@@ -926,11 +927,11 @@ function useWorkflowActions(state: ReturnType<typeof useWorkflowState>) {
       }
 
       const newWorkflow = await api.workflow.duplicate(currentWorkflowId);
-      toast.success("Workflow duplicated successfully");
+      toast.success(t("workflowDuplicated"));
       router.push(`/workflows/${newWorkflow.id}`);
     } catch (error) {
       console.error("Failed to duplicate workflow:", error);
-      toast.error("Failed to duplicate workflow. Please try again.");
+      toast.error(t("workflowDuplicateFailed"));
     } finally {
       setIsDuplicating(false);
     }
@@ -959,6 +960,7 @@ function ToolbarActions({
   actions: ReturnType<typeof useWorkflowActions>;
 }) {
   const { open: openOverlay, push } = useOverlay();
+  const t = useTranslations("WorkflowToolbar");
   const [selectedNodeId] = useAtom(selectedNodeAtom);
   const [selectedEdgeId] = useAtom(selectedEdgeAtom);
   const [nodes] = useAtom(nodesAtom);
@@ -983,12 +985,14 @@ function ToolbarActions({
 
   const handleDeleteConfirm = () => {
     const isNode = Boolean(selectedNodeId);
-    const itemType = isNode ? "Node" : "Connection";
+    const itemType = isNode ? t("node") : t("connection");
 
     push(ConfirmOverlay, {
-      title: `Delete ${itemType}`,
-      message: `Are you sure you want to delete this ${itemType.toLowerCase()}? This action cannot be undone.`,
-      confirmLabel: "Delete",
+      title: t("deleteNodeOrConnection", { itemType }),
+      message: t("deleteNodeOrConnectionConfirm", {
+        itemType: itemType.toLowerCase(),
+      }),
+      confirmLabel: t("delete"),
       confirmVariant: "destructive" as const,
       onConfirm: () => {
         if (selectedNodeId) {
@@ -1074,7 +1078,7 @@ function ToolbarActions({
           disabled={state.isGenerating}
           onClick={handleAddStep}
           size="icon"
-          title="Add Step"
+          title={t("addStep")}
           variant="secondary"
         >
           <Plus className="size-4" />
@@ -1087,7 +1091,7 @@ function ToolbarActions({
           className="border hover:bg-black/5 dark:hover:bg-white/5"
           onClick={() => openOverlay(ConfigurationOverlay, {})}
           size="icon"
-          title="Configuration"
+          title={t("configuration")}
           variant="secondary"
         >
           <Settings2 className="size-4" />
@@ -1098,7 +1102,7 @@ function ToolbarActions({
             className="border hover:bg-black/5 dark:hover:bg-white/5"
             onClick={handleDeleteConfirm}
             size="icon"
-            title="Delete"
+            title={t("delete")}
             variant="secondary"
           >
             <Trash2 className="size-4" />
@@ -1113,7 +1117,7 @@ function ToolbarActions({
           disabled={state.isGenerating}
           onClick={handleAddStep}
           size="icon"
-          title="Add Step"
+          title={t("addStep")}
           variant="secondary"
         >
           <Plus className="size-4" />
@@ -1127,7 +1131,7 @@ function ToolbarActions({
           disabled={!state.canUndo || state.isGenerating}
           onClick={() => state.undo()}
           size="icon"
-          title="Undo"
+          title={t("undo")}
           variant="secondary"
         >
           <Undo2 className="size-4" />
@@ -1137,7 +1141,7 @@ function ToolbarActions({
           disabled={!state.canRedo || state.isGenerating}
           onClick={() => state.redo()}
           size="icon"
-          title="Redo"
+          title={t("redo")}
           variant="secondary"
         >
           <Redo2 className="size-4" />
@@ -1151,7 +1155,7 @@ function ToolbarActions({
           disabled={!state.canUndo || state.isGenerating}
           onClick={() => state.undo()}
           size="icon"
-          title="Undo"
+          title={t("undo")}
           variant="secondary"
         >
           <Undo2 className="size-4" />
@@ -1161,7 +1165,7 @@ function ToolbarActions({
           disabled={!state.canRedo || state.isGenerating}
           onClick={() => state.redo()}
           size="icon"
-          title="Redo"
+          title={t("redo")}
           variant="secondary"
         >
           <Redo2 className="size-4" />
@@ -1196,6 +1200,7 @@ function SaveButton({
   state: ReturnType<typeof useWorkflowState>;
   handleSave: () => Promise<void>;
 }) {
+  const t = useTranslations("WorkflowToolbar");
   return (
     <Button
       className="relative border hover:bg-black/5 disabled:opacity-100 dark:hover:bg-white/5 disabled:[&>svg]:text-muted-foreground"
@@ -1204,7 +1209,7 @@ function SaveButton({
       }
       onClick={handleSave}
       size="icon"
-      title={state.isSaving ? "Saving..." : "Save workflow"}
+      title={state.isSaving ? t("saving") : t("saveWorkflow")}
       variant="secondary"
     >
       {state.isSaving ? (
@@ -1228,6 +1233,7 @@ function DownloadButton({
   actions: ReturnType<typeof useWorkflowActions>;
 }) {
   const { open: openOverlay } = useOverlay();
+  const t = useTranslations("WorkflowToolbar");
 
   const handleClick = () => {
     openOverlay(ExportWorkflowOverlay, {
@@ -1247,11 +1253,7 @@ function DownloadButton({
       }
       onClick={handleClick}
       size="icon"
-      title={
-        state.isDownloading
-          ? "Preparing download..."
-          : "Export workflow as code"
-      }
+      title={state.isDownloading ? t("preparingDownload") : t("exportWorkflow")}
       variant="secondary"
     >
       {state.isDownloading ? (
@@ -1271,6 +1273,7 @@ function VisibilityButton({
   state: ReturnType<typeof useWorkflowState>;
   actions: ReturnType<typeof useWorkflowActions>;
 }) {
+  const t = useTranslations("WorkflowToolbar");
   const isPublic = state.workflowVisibility === "public";
 
   return (
@@ -1280,7 +1283,7 @@ function VisibilityButton({
           className="border hover:bg-black/5 dark:hover:bg-white/5"
           disabled={!state.currentWorkflowId || state.isGenerating}
           size="icon"
-          title={isPublic ? "Public workflow" : "Private workflow"}
+          title={isPublic ? t("publicWorkflow") : t("privateWorkflow")}
           variant="secondary"
         >
           {isPublic ? (
@@ -1296,7 +1299,7 @@ function VisibilityButton({
           onClick={() => actions.handleToggleVisibility("private")}
         >
           <Lock className="size-4" />
-          Private
+          {t("private")}
           {!isPublic && <Check className="ml-auto size-4" />}
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -1304,7 +1307,7 @@ function VisibilityButton({
           onClick={() => actions.handleToggleVisibility("public")}
         >
           <Globe className="size-4" />
-          Public
+          {t("public")}
           {isPublic && <Check className="ml-auto size-4" />}
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -1320,6 +1323,7 @@ function RunButtonGroup({
   state: ReturnType<typeof useWorkflowState>;
   actions: ReturnType<typeof useWorkflowActions>;
 }) {
+  const t = useTranslations("WorkflowToolbar");
   return (
     <Button
       className="border hover:bg-black/5 disabled:opacity-100 dark:hover:bg-white/5 disabled:[&>svg]:text-muted-foreground"
@@ -1328,7 +1332,7 @@ function RunButtonGroup({
       }
       onClick={() => actions.handleExecute()}
       size="icon"
-      title="Run Workflow"
+      title={t("runWorkflow")}
       variant="secondary"
     >
       {state.isExecuting ? (
@@ -1348,13 +1352,14 @@ function DuplicateButton({
   isDuplicating: boolean;
   onDuplicate: () => void;
 }) {
+  const t = useTranslations("WorkflowToolbar");
   return (
     <Button
       className="h-9 border hover:bg-black/5 dark:hover:bg-white/5"
       disabled={isDuplicating}
       onClick={onDuplicate}
       size="sm"
-      title="Duplicate to your workflows"
+      title={t("duplicateToYourWorkflows")}
       variant="secondary"
     >
       {isDuplicating ? (
@@ -1362,7 +1367,7 @@ function DuplicateButton({
       ) : (
         <Copy className="mr-2 size-4" />
       )}
-      Duplicate
+      {t("duplicate")}
     </Button>
   );
 }
@@ -1377,6 +1382,7 @@ function WorkflowMenuComponent({
   state: ReturnType<typeof useWorkflowState>;
   actions: ReturnType<typeof useWorkflowActions>;
 }) {
+  const t = useTranslations("WorkflowToolbar");
   return (
     <div className="flex flex-col gap-1">
       <div className="flex h-9 max-w-[160px] items-center overflow-hidden rounded-md border bg-secondary text-secondary-foreground sm:max-w-none">
@@ -1388,8 +1394,8 @@ function WorkflowMenuComponent({
                 state.workflowName
               ) : (
                 <>
-                  <span className="sm:hidden">New</span>
-                  <span className="hidden sm:inline">New Workflow</span>
+                  <span className="sm:hidden">{t("newShort")}</span>
+                  <span className="hidden sm:inline">{t("newWorkflow")}</span>
                 </>
               )}
             </p>
@@ -1401,13 +1407,15 @@ function WorkflowMenuComponent({
               className="flex items-center justify-between"
             >
               <a href="/">
-                New Workflow{" "}
+                {t("newWorkflow")}{" "}
                 {!workflowId && <Check className="size-4 shrink-0" />}
               </a>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {state.allWorkflows.length === 0 ? (
-              <DropdownMenuItem disabled>No workflows found</DropdownMenuItem>
+              <DropdownMenuItem disabled>
+                {t("noWorkflowsFound")}
+              </DropdownMenuItem>
             ) : (
               state.allWorkflows
                 .filter((w) => !isInternalWorkflowName(w.name))
@@ -1431,7 +1439,7 @@ function WorkflowMenuComponent({
       </div>
       {workflowId && !state.isOwner && (
         <span className="text-muted-foreground text-xs uppercase lg:hidden">
-          Read-only
+          {t("readOnly")}
         </span>
       )}
     </div>
@@ -1441,6 +1449,7 @@ function WorkflowMenuComponent({
 export const WorkflowToolbar = ({ workflowId }: WorkflowToolbarProps) => {
   const state = useWorkflowState();
   const actions = useWorkflowActions(state);
+  const t = useTranslations("WorkflowToolbar");
 
   return (
     <>
@@ -1456,7 +1465,7 @@ export const WorkflowToolbar = ({ workflowId }: WorkflowToolbarProps) => {
           />
           {workflowId && !state.isOwner && (
             <span className="hidden text-muted-foreground text-xs uppercase lg:inline">
-              Read-only
+              {t("readOnly")}
             </span>
           )}
         </div>

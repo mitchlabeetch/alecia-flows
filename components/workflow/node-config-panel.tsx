@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Trash2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -76,17 +77,20 @@ const MultiSelectionPanel = ({
   selectedEdges: { id: string; selected?: boolean }[];
   onDelete: () => void;
 }) => {
+  const t = useTranslations("NodeConfigPanel");
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
 
-  const nodeText = selectedNodes.length === 1 ? "node" : "nodes";
-  const edgeText = selectedEdges.length === 1 ? "line" : "lines";
   const selectionParts: string[] = [];
 
   if (selectedNodes.length > 0) {
-    selectionParts.push(`${selectedNodes.length} ${nodeText}`);
+    selectionParts.push(
+      `${selectedNodes.length} ${selectedNodes.length === 1 ? "node" : "nodes"}`
+    );
   }
   if (selectedEdges.length > 0) {
-    selectionParts.push(`${selectedEdges.length} ${edgeText}`);
+    selectionParts.push(
+      `${selectedEdges.length} ${selectedEdges.length === 1 ? "line" : "lines"}`
+    );
   }
 
   const selectionText = selectionParts.join(" and ");
@@ -100,13 +104,13 @@ const MultiSelectionPanel = ({
     <>
       <div className="flex size-full flex-col">
         <div className="flex h-14 w-full shrink-0 items-center border-b bg-transparent px-4">
-          <h2 className="font-semibold text-foreground">Properties</h2>
+          <h2 className="font-semibold text-foreground">{t("properties")}</h2>
         </div>
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           <div className="space-y-2">
-            <Label>Selection</Label>
+            <Label>{t("selection")}</Label>
             <p className="text-muted-foreground text-sm">
-              {selectionText} selected
+              {t("selected", { text: selectionText })}
             </p>
           </div>
 
@@ -118,7 +122,7 @@ const MultiSelectionPanel = ({
               variant="ghost"
             >
               <Trash2 className="mr-2 size-4" />
-              Delete
+              {t("delete")}
             </Button>
           </div>
         </div>
@@ -127,15 +131,16 @@ const MultiSelectionPanel = ({
       <AlertDialog onOpenChange={setShowDeleteAlert} open={showDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Selected Items</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteSelectedItems")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectionText}? This action
-              cannot be undone.
+              {t("deleteSelectedConfirm", { text: selectionText })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              {t("delete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -145,6 +150,7 @@ const MultiSelectionPanel = ({
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex UI logic with multiple conditions
 export const PanelInner = () => {
+  const t = useTranslations("NodeConfigPanel");
   const [selectedNodeId] = useAtom(selectedNodeAtom);
   const [selectedEdgeId] = useAtom(selectedEdgeAtom);
   const [nodes] = useAtom(nodesAtom);
@@ -289,7 +295,7 @@ export const PanelInner = () => {
 
   const handleCopyWorkflowCode = () => {
     navigator.clipboard.writeText(workflowCode);
-    toast.success("Code copied to clipboard");
+    toast.success(t("codeCopied"));
   };
 
   const handleDelete = () => {
@@ -328,7 +334,7 @@ export const PanelInner = () => {
     } catch (error) {
       console.error("Failed to delete runs:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Failed to delete runs";
+        error instanceof Error ? error.message : t("deleteRunsFailed");
       toast.error(errorMessage);
     }
   };
@@ -453,7 +459,7 @@ export const PanelInner = () => {
         });
       } catch (error) {
         console.error("Failed to update workflow name:", error);
-        toast.error("Failed to update workspace name");
+        toast.error(t("updateNameFailed"));
       }
     }
   };
@@ -466,7 +472,7 @@ export const PanelInner = () => {
       }
     } catch (error) {
       console.error("Failed to refresh runs:", error);
-      toast.error("Failed to refresh runs");
+      toast.error(t("refreshRunsFailed"));
     } finally {
       setIsRefreshing(false);
     }
@@ -489,7 +495,7 @@ export const PanelInner = () => {
       <>
         <div className="flex size-full flex-col">
           <div className="flex h-14 w-full shrink-0 items-center border-b bg-transparent px-4">
-            <h2 className="font-semibold text-foreground">Properties</h2>
+            <h2 className="font-semibold text-foreground">{t("properties")}</h2>
           </div>
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <div className="space-y-2">
@@ -520,7 +526,7 @@ export const PanelInner = () => {
                   variant="ghost"
                 >
                   <Trash2 className="mr-2 size-4" />
-                  Delete
+                  {t("delete")}
                 </Button>
               </div>
             )}
@@ -533,16 +539,15 @@ export const PanelInner = () => {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Edge</AlertDialogTitle>
+              <AlertDialogTitle>{t("deleteEdge")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this connection? This action
-                cannot be undone.
+                {t("deleteEdgeConfirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteEdge}>
-                Delete
+                {t("delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -566,7 +571,7 @@ export const PanelInner = () => {
               className="bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
               value="properties"
             >
-              Properties
+              {t("properties")}
             </TabsTrigger>
             <TabsTrigger
               className="bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
@@ -590,7 +595,7 @@ export const PanelInner = () => {
             <div className="flex-1 space-y-4 overflow-y-auto p-4">
               <div className="space-y-2">
                 <Label className="ml-1" htmlFor="workflow-name">
-                  Workflow Name
+                  {t("workflowName")}
                 </Label>
                 <Input
                   disabled={!isOwner}
@@ -601,12 +606,12 @@ export const PanelInner = () => {
               </div>
               <div className="space-y-2">
                 <Label className="ml-1" htmlFor="workflow-id">
-                  Workflow ID
+                  {t("workflowId")}
                 </Label>
                 <Input
                   disabled
                   id="workflow-id"
-                  value={currentWorkflowId || "Not saved"}
+                  value={currentWorkflowId || t("notSaved")}
                 />
               </div>
               {!isOwner && (
@@ -635,7 +640,7 @@ export const PanelInner = () => {
                     variant="ghost"
                   >
                     <Trash2 className="mr-2 size-4" />
-                    Delete
+                    {t("delete")}
                   </Button>
                 </div>
               )}
@@ -728,16 +733,15 @@ export const PanelInner = () => {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete All Runs</AlertDialogTitle>
+              <AlertDialogTitle>{t("deleteAllRuns")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete all workflow runs? This action
-                cannot be undone.
+                {t("deleteAllRunsConfirm")}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteAllRuns}>
-                Delete
+                {t("delete")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -760,7 +764,7 @@ export const PanelInner = () => {
             className="bg-transparent text-muted-foreground data-[state=active]:text-foreground data-[state=active]:shadow-none"
             value="properties"
           >
-            Properties
+            {t("properties")}
           </TabsTrigger>
           {(selectedNode.data.type !== "trigger" ||
             (selectedNode.data.config?.triggerType as string) !== "Manual") &&
@@ -863,7 +867,7 @@ export const PanelInner = () => {
                       disabled={isGenerating || !isOwner}
                       id="description"
                       onChange={(e) => handleUpdateDescription(e.target.value)}
-                      placeholder="Optional description"
+                      placeholder={t("optionalDescription")}
                       value={selectedNode.data.description || ""}
                     />
                   </div>
@@ -909,7 +913,7 @@ export const PanelInner = () => {
                     variant="ghost"
                   >
                     <Trash2 className="mr-2 size-4" />
-                    Delete
+                    {t("delete")}
                   </Button>
                 </div>
               )}
@@ -1030,16 +1034,15 @@ export const PanelInner = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete All Runs</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteAllRuns")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete all workflow runs? This action
-              cannot be undone.
+              {t("deleteAllRunsConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteAllRuns}>
-              Delete
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1051,15 +1054,16 @@ export const PanelInner = () => {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Step</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteStep")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this node? This action cannot be
-              undone.
+              {t("deleteStepConfirm")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>
+              {t("delete")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

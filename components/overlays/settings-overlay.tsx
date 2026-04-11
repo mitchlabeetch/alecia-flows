@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AccountSettings } from "@/components/settings/account-settings";
@@ -13,6 +14,7 @@ type SettingsOverlayProps = {
 };
 
 export function SettingsOverlay({ overlayId }: SettingsOverlayProps) {
+  const t = useTranslations("SettingsOverlay");
   const { closeAll } = useOverlay();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -49,11 +51,11 @@ export function SettingsOverlay({ overlayId }: SettingsOverlayProps) {
       setSaving(true);
       await api.user.update({ name: accountName, email: accountEmail });
       await loadAccount();
-      toast.success("Settings saved");
+      toast.success(t("settingsSaved"));
       closeAll();
     } catch (error) {
       console.error("Failed to save account:", error);
-      toast.error("Failed to save settings");
+      toast.error(t("settingsSaveFailed"));
     } finally {
       setSaving(false);
     }
@@ -62,19 +64,19 @@ export function SettingsOverlay({ overlayId }: SettingsOverlayProps) {
   return (
     <Overlay
       actions={[
-        { label: "Cancel", variant: "outline", onClick: closeAll },
+        { label: t("cancel"), variant: "outline", onClick: closeAll },
         {
-          label: "Save",
+          label: t("save"),
           onClick: saveAccount,
           loading: saving,
           disabled: loading,
         },
       ]}
       overlayId={overlayId}
-      title="Settings"
+      title={t("title")}
     >
       <p className="-mt-2 mb-4 text-muted-foreground text-sm">
-        Update your personal information
+        {t("description")}
       </p>
 
       {loading ? (

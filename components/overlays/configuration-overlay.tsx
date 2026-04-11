@@ -13,6 +13,7 @@ import {
   Settings2,
   Trash2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ConfirmOverlay } from "@/components/overlays/confirm-overlay";
@@ -83,6 +84,7 @@ type ConfigurationOverlayProps = OverlayComponentProps;
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Complex UI logic with multiple conditions
 export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
+  const t = useTranslations("ConfigurationOverlay");
   const { push, closeAll } = useOverlay();
   const [selectedNodeId] = useAtom(selectedNodeAtom);
   const [selectedEdgeId] = useAtom(selectedEdgeAtom);
@@ -189,7 +191,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
 
   const handleDeleteNode = useCallback(() => {
     push(ConfirmOverlay, {
-      title: "Delete Step",
+      title: t("deleteStep"),
       message:
         "Are you sure you want to delete this node? This action cannot be undone.",
       confirmLabel: "Delete",
@@ -219,7 +221,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
 
   const handleDeleteAllRuns = () => {
     push(ConfirmOverlay, {
-      title: "Delete All Runs",
+      title: t("deleteAllRuns"),
       message:
         "Are you sure you want to delete all workflow runs? This action cannot be undone.",
       confirmLabel: "Delete",
@@ -476,7 +478,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
                   variant="ghost"
                 >
                   <Copy className="mr-1 size-3" />
-                  Copy
+                  {t("copyWorkflowCode")}
                 </Button>
               </div>
               <div className="h-[400px]">
@@ -542,7 +544,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Settings2 className="size-5" />
-            Workflow
+            {t("properties")}
           </button>
           <button
             className={`flex flex-1 flex-col items-center gap-1 py-3 font-medium text-xs transition-colors ${
@@ -554,7 +556,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Code className="size-5" />
-            Code
+            {t("code")}
           </button>
           {isOwner && (
             <button
@@ -567,7 +569,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
               type="button"
             >
               <Play className="size-5" />
-              Runs
+              {t("runs")}
             </button>
           )}
         </div>
@@ -685,7 +687,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
         {/* Preload Code tab - always render but hide when not active */}
         {showCodeTab && (
           <div
-            className={`flex flex-col ${activeTab === "code" ? "" : "invisible absolute -z-10"}`}
+            className={`flex flex-col ${activeTab === "code" ? "" : "-z-10 invisible absolute"}`}
           >
             <div className="flex shrink-0 items-center justify-between border-b bg-muted/30 px-3 py-2">
               <div className="flex items-center gap-2">
@@ -701,7 +703,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
                 variant="ghost"
               >
                 <Copy className="mr-2 size-4" />
-                Copy
+                {t("copyCode")}
               </Button>
             </div>
             <div className="h-[400px]">
@@ -743,7 +745,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
                 <RefreshCw
                   className={`mr-2 size-4 ${isRefreshing ? "animate-spin" : ""}`}
                 />
-                Refresh
+                {t("refreshRuns")}
               </Button>
               <Button
                 className="text-muted-foreground"
@@ -752,7 +754,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
                 variant="ghost"
               >
                 <Eraser className="mr-2 size-4" />
-                Clear All
+                {t("clearStatuses")}
               </Button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
@@ -777,7 +779,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
           type="button"
         >
           <Settings2 className="size-5" />
-          Properties
+          {t("properties")}
         </button>
         {showCodeTab && (
           <button
@@ -788,7 +790,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Code className="size-5" />
-            Code
+            {t("code")}
           </button>
         )}
         {isOwner && (
@@ -800,7 +802,7 @@ export function ConfigurationOverlay({ overlayId }: ConfigurationOverlayProps) {
             type="button"
           >
             <Play className="size-5" />
-            Runs
+            {t("runs")}
           </button>
         )}
       </div>

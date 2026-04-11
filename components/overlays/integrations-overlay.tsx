@@ -2,6 +2,7 @@
 
 import { useSetAtom } from "jotai";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IntegrationsManager } from "@/components/settings/integrations-manager";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,7 @@ type IntegrationsOverlayProps = {
 };
 
 export function IntegrationsOverlay({ overlayId }: IntegrationsOverlayProps) {
+  const t = useTranslations("IntegrationsOverlay");
   const { push, closeAll } = useOverlay();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
@@ -58,17 +60,17 @@ export function IntegrationsOverlay({ overlayId }: IntegrationsOverlayProps) {
     <Overlay
       actions={[
         {
-          label: "Add Connection",
+          label: t("addConnection"),
           variant: "outline",
           onClick: handleAddConnection,
         },
-        { label: "Done", onClick: handleClose },
+        { label: t("done"), onClick: handleClose },
       ]}
       overlayId={overlayId}
-      title="Connections"
+      title={t("title")}
     >
       <p className="-mt-2 mb-4 text-muted-foreground text-sm">
-        Manage API keys and credentials used by your workflows
+        {t("description")}
       </p>
 
       {loading ? (
@@ -78,11 +80,11 @@ export function IntegrationsOverlay({ overlayId }: IntegrationsOverlayProps) {
       ) : (
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground" />
             <Input
               className="pl-9"
               onChange={(e) => setFilter(e.target.value)}
-              placeholder="Filter connections..."
+              placeholder={t("filterConnections")}
               value={filter}
             />
           </div>

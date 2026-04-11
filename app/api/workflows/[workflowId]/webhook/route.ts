@@ -70,10 +70,19 @@ async function validateApiKey(
   return { valid: true };
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+// When ALLOWED_WEBHOOK_ORIGIN is set, the Access-Control-Allow-Origin header
+// is included in responses to enable browser-originated webhook calls from
+// that specific origin. When unset, no CORS header is emitted, which is the
+// safe default for server-to-server webhook callers.
+const allowedWebhookOrigin = process.env.ALLOWED_WEBHOOK_ORIGIN;
+
+const corsHeaders: Record<string, string> = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  "Access-Control-Allow-Headers":
+    "Content-Type, Authorization, X-Webhook-Timestamp, X-Webhook-Signature",
+  ...(allowedWebhookOrigin
+    ? { "Access-Control-Allow-Origin": allowedWebhookOrigin }
+    : {}),
 };
 
 // biome-ignore lint/nursery/useMaxParams: Background execution requires all workflow context

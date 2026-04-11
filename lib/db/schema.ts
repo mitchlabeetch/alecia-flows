@@ -21,6 +21,7 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").notNull(),
   // Anonymous user tracking
   isAnonymous: boolean("is_anonymous").default(false),
+  role: text("role").notNull().default("user").$type<"user" | "admin">(),
 });
 
 export const sessions = pgTable("sessions", {

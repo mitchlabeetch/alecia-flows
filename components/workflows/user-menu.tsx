@@ -1,6 +1,7 @@
 "use client";
 
 import { Key, LogOut, Moon, Plug, Settings, Sun } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import {
@@ -34,6 +35,7 @@ export const UserMenu = () => {
   const { theme, setTheme } = useTheme();
   const { open: openOverlay } = useOverlay();
   const [providerId, setProviderId] = useState<string | null>(null);
+  const t = useTranslations("UserMenu");
 
   // Fetch provider info when session is available
   useEffect(() => {
@@ -97,7 +99,7 @@ export const UserMenu = () => {
             size="sm"
             variant="default"
           >
-            Sign In
+            {t("signIn")}
           </Button>
         </AuthDialog>
       </div>
@@ -124,7 +126,7 @@ export const UserMenu = () => {
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">
             <p className="font-medium text-sm leading-none">
-              {session?.user?.name || "User"}
+              {session?.user?.name || t("user")}
             </p>
             <p className="text-muted-foreground text-xs leading-none">
               {session?.user?.email}
@@ -135,29 +137,33 @@ export const UserMenu = () => {
         {!isOAuthUser && (
           <DropdownMenuItem onClick={() => openOverlay(SettingsOverlay)}>
             <Settings className="size-4" />
-            <span>Settings</span>
+            <span>{t("settings")}</span>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={() => openOverlay(IntegrationsOverlay)}>
           <Plug className="size-4" />
-          <span>Connections</span>
+          <span>{t("connections")}</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => openOverlay(ApiKeysOverlay)}>
           <Key className="size-4" />
-          <span>API Keys</span>
+          <span>{t("apiKeys")}</span>
         </DropdownMenuItem>
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
-            <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Sun className="dark:-rotate-90 size-4 rotate-0 scale-100 transition-all dark:scale-0" />
             <Moon className="absolute size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            <span>Theme</span>
+            <span>{t("theme")}</span>
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup onValueChange={setTheme} value={theme}>
-              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="light">
+                {t("light")}
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">
+                {t("dark")}
+              </DropdownMenuRadioItem>
               <DropdownMenuRadioItem value="system">
-                System
+                {t("system")}
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
@@ -165,7 +171,7 @@ export const UserMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout}>
           <LogOut className="size-4" />
-          <span>Logout</span>
+          <span>{t("logout")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

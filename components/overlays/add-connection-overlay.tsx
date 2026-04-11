@@ -2,6 +2,7 @@
 
 import { useAtomValue, useSetAtom } from "jotai";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -63,6 +64,7 @@ export function AddConnectionOverlay({
   overlayId,
   onSuccess,
 }: AddConnectionOverlayProps) {
+  const t = useTranslations("AddConnectionOverlay");
   const { push, closeAll } = useOverlay();
   const [searchQuery, setSearchQuery] = useState("");
   const isMobile = useIsMobile();
@@ -131,26 +133,26 @@ export function AddConnectionOverlay({
   };
 
   return (
-    <Overlay overlayId={overlayId} title="Add Connection">
+    <Overlay overlayId={overlayId} title={t("title")}>
       <p className="-mt-2 mb-4 text-muted-foreground text-sm">
-        Select a service to connect
+        {t("selectService")}
       </p>
 
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="-translate-y-1/2 absolute top-1/2 left-3 size-4 text-muted-foreground" />
           <Input
             autoFocus={!isMobile}
             className="pl-9"
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search services..."
+            placeholder={t("searchServices")}
             value={searchQuery}
           />
         </div>
         <div className="max-h-[300px] space-y-1 overflow-y-auto">
           {filteredTypes.length === 0 ? (
             <p className="py-4 text-center text-muted-foreground text-sm">
-              No services found
+              {t("noServicesFound")}
             </p>
           ) : (
             filteredTypes.map((type) => {
@@ -251,10 +253,11 @@ export function ConfigureConnectionOverlay({
   type,
   onSuccess,
 }: ConfigureConnectionOverlayProps) {
+  const t = useTranslations("AddConnectionOverlay");
   const { push, closeAll } = useOverlay();
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{
+  const [_testResult, setTestResult] = useState<{
     status: "success" | "error";
     message: string;
   } | null>(null);
@@ -273,12 +276,12 @@ export function ConfigureConnectionOverlay({
         type,
         config,
       });
-      toast.success("Connection created");
+      toast.success(t("connectionCreated"));
       onSuccess?.(newIntegration.id);
       closeAll();
     } catch (error) {
       console.error("Failed to save integration:", error);
-      toast.error("Failed to save connection");
+      toast.error(t("connectionCreateFailed"));
     } finally {
       setSaving(false);
     }
@@ -287,7 +290,7 @@ export function ConfigureConnectionOverlay({
   const handleSave = async () => {
     const hasConfig = Object.values(config).some((v) => v && v.length > 0);
     if (!hasConfig) {
-      toast.error("Please enter credentials");
+      toast.error(t("pleaseEnterCredentials"));
       return;
     }
 
@@ -301,9 +304,9 @@ export function ConfigureConnectionOverlay({
       if (result.status === "error") {
         // Show confirmation to save anyway
         push(ConfirmOverlay, {
-          title: "Connection Test Failed",
-          message: `The test failed: ${result.message}\n\nDo you want to save anyway?`,
-          confirmLabel: "Save Anyway",
+          title: t("connectionTestFailed"),
+          message: t("testFailedMessage", { message: result.message }),
+          confirmLabel: t("saveAnyway"),
           onConfirm: async () => {
             await doSave();
           },
@@ -315,11 +318,11 @@ export function ConfigureConnectionOverlay({
       await doSave();
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Failed to test connection";
+        error instanceof Error ? error.message : t("connectionFailed");
       push(ConfirmOverlay, {
-        title: "Connection Test Failed",
-        message: `${message}\n\nDo you want to save anyway?`,
-        confirmLabel: "Save Anyway",
+        title: t("connectionTestFailed"),
+        message: t("testFailedMessage", { message }),
+        confirmLabel: t("saveAnyway"),
         onConfirm: async () => {
           await doSave();
         },
@@ -331,7 +334,7 @@ export function ConfigureConnectionOverlay({
   const handleTest = async () => {
     const hasConfig = Object.values(config).some((v) => v && v.length > 0);
     if (!hasConfig) {
-      toast.error("Please enter credentials first");
+      toast.error(t("pleaseEnterCredentials"));
       return;
     }
 
@@ -341,13 +344,13 @@ export function ConfigureConnectionOverlay({
       const result = await api.integration.testCredentials({ type, config });
       setTestResult(result);
       if (result.status === "success") {
-        toast.success(result.message || "Connection successful");
+        toast.success(result.message || t("connectionSuccessful"));
       } else {
-        toast.error(result.message || "Connection failed");
+        toast.error(result.message || t("connectionFailed"));
       }
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : "Connection test failed";
+        error instanceof Error ? error.message : t("connectionFailed");
       setTestResult({ status: "error", message });
       toast.error(message);
     } finally {
@@ -366,8 +369,8 @@ export function ConfigureConnectionOverlay({
         <SecretField
           configKey="url"
           fieldId="url"
-          helpText="Connection string in the format: postgresql://user:password@host:port/database"
-          label="Database URL"
+          helpText={t("databaseUrlHelp")}
+          label={t("databaseUrlLabel")}
           onChange={updateConfig}
           placeholder="postgresql://user:password@host:port/database"
           value={config.url || ""}
@@ -428,30 +431,30 @@ export function ConfigureConnectionOverlay({
     <Overlay
       actions={[
         {
-          label: "Test",
+          label: t("test"),
           variant: "outline",
           onClick: handleTest,
           loading: testing,
           disabled: saving,
         },
-        { label: "Create", onClick: handleSave, loading: saving },
+        { label: t("create"), onClick: handleSave, loading: saving },
       ]}
       overlayId={overlayId}
-      title={`Add ${getLabel(type)}`}
+      title={t("addLabel", { label: getLabel(type) })}
     >
       <p className="-mt-2 mb-4 text-muted-foreground text-sm">
-        Enter your credentials
+        {t("enterCredentials")}
       </p>
 
       <div className="space-y-4">
         {renderConfigFields()}
 
         <div className="space-y-2">
-          <Label htmlFor="name">Label (Optional)</Label>
+          <Label htmlFor="name">{t("labelOptional")}</Label>
           <Input
             id="name"
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Production, Personal, Work"
+            placeholder={t("labelPlaceholder")}
             value={name}
           />
         </div>
