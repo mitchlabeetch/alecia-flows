@@ -143,6 +143,10 @@ export function EditConnectionOverlay({
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [_testResult, setTestResult] = useState<{
+    status: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [name, setName] = useState(integration.name);
   const [config, setConfig] = useState<Record<string, string>>({});
 
   const updateConfig = (key: string, value: string) => {
