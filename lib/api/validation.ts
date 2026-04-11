@@ -90,6 +90,15 @@ export const workflowUpdateSchema = z
     message: "At least one field is required",
   });
 
+export const userUpdateSchema = z
+  .object({
+    name: z.string().trim().min(1).max(255).optional(),
+    email: z.string().trim().email("Invalid email address").optional(),
+  })
+  .refine((data) => data.name !== undefined || data.email !== undefined, {
+    message: "At least one field (name or email) is required",
+  });
+
 export const webhookPayloadSchema = jsonObjectSchema.default({});
 
 type ValidationResult<T> =

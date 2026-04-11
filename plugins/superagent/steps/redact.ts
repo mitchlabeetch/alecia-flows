@@ -5,10 +5,14 @@ import { type StepInput, withStepLogging } from "@/lib/steps/step-handler";
 import { getErrorMessage } from "@/lib/utils";
 import type { SuperagentCredentials } from "../credentials";
 
-type RedactResult = {
+type RedactData = {
   redactedText: string;
   reasoning?: string;
 };
+
+type RedactResult =
+  | { success: true; data: RedactData }
+  | { success: false; error: { message: string } };
 
 export type SuperagentRedactCoreInput = {
   text: string;
@@ -30,7 +34,10 @@ async function stepHandler(
   const apiKey = credentials.SUPERAGENT_API_KEY;
 
   if (!apiKey) {
-    throw new Error("Superagent API Key is not configured.");
+    return {
+      success: false,
+      error: { message: "Superagent API Key is not configured." },
+    };
   }
 
   try {
@@ -67,18 +74,27 @@ async function stepHandler(
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Redact API error: ${error}`);
+      return {
+        success: false,
+        error: { message: `Redact API error: ${error}` },
+      };
     }
 
     const data = await response.json();
     const choice = data.choices?.[0];
 
     return {
-      redactedText: choice?.message?.content || input.text,
-      reasoning: choice?.message?.reasoning,
+      success: true,
+      data: {
+        redactedText: choice?.message?.content || input.text,
+        reasoning: choice?.message?.reasoning,
+      },
     };
   } catch (error) {
-    throw new Error(`Failed to redact text: ${getErrorMessage(error)}`);
+    return {
+      success: false,
+      error: { message: `Failed to redact text: ${getErrorMessage(error)}` },
+    };
   }
 }
 

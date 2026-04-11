@@ -7,12 +7,16 @@ import type { SuperagentCredentials } from "../credentials";
 
 type GuardClassification = "pass" | "block";
 
-type GuardResult = {
+type GuardData = {
   classification: GuardClassification;
   violationTypes: string[];
   cweCodes: string[];
   reasoning?: string;
 };
+
+type GuardResult =
+  | { success: true; data: GuardData }
+  | { success: false; error: { message: string } };
 
 export type SuperagentGuardCoreInput = {
   text: string;
@@ -33,7 +37,10 @@ async function stepHandler(
   const apiKey = credentials.SUPERAGENT_API_KEY;
 
   if (!apiKey) {
-    throw new Error("Superagent API Key is not configured.");
+    return {
+      success: false,
+      error: { message: "Superagent API Key is not configured." },
+    };
   }
 
   try {
@@ -50,7 +57,10 @@ async function stepHandler(
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`Guard API error: ${error}`);
+      return {
+        success: false,
+        error: { message: `Guard API error: ${error}` },
+      };
     }
 
     const data = await response.json();
@@ -58,9 +68,13 @@ async function stepHandler(
     const content = choice?.message?.content;
 
     if (!content || typeof content !== "object") {
-      throw new Error(
-        "Invalid Guard API response: missing or invalid content structure"
-      );
+      return {
+        success: false,
+        error: {
+          message:
+            "Invalid Guard API response: missing or invalid content structure",
+        },
+      };
     }
 
     const classification = content.classification;
@@ -68,19 +82,28 @@ async function stepHandler(
       !classification ||
       (classification !== "pass" && classification !== "block")
     ) {
-      throw new Error(
-        `Invalid Guard API response: missing or invalid classification (received: ${JSON.stringify(classification)})`
-      );
+      return {
+        success: false,
+        error: {
+          message: `Invalid Guard API response: missing or invalid classification (received: ${JSON.stringify(classification)})`,
+        },
+      };
     }
 
     return {
-      classification,
-      violationTypes: content?.violation_types || [],
-      cweCodes: content?.cwe_codes || [],
-      reasoning: choice?.message?.reasoning,
+      success: true,
+      data: {
+        classification,
+        violationTypes: content?.violation_types || [],
+        cweCodes: content?.cwe_codes || [],
+        reasoning: choice?.message?.reasoning,
+      },
     };
   } catch (error) {
-    throw new Error(`Failed to analyze text: ${getErrorMessage(error)}`);
+    return {
+      success: false,
+      error: { message: `Failed to analyze text: ${getErrorMessage(error)}` },
+    };
   }
 }
 
