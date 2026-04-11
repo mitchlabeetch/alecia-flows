@@ -1,14 +1,14 @@
-# AI Workflow Builder Template
+# Alecia Flows
 
-A template for building your own AI-driven workflow automation platform. Built on top of Workflow DevKit, this template provides a complete visual workflow builder with real integrations and code generation capabilities.
+A visual workflow automation platform for building intelligent business process automation. Alecia Flows lets you design, deploy, and monitor automated workflows with a drag-and-drop node-based editor, real integrations, and AI-powered workflow generation.
 
-![AI Workflow Builder Screenshot](screenshot.png)
+![Alecia Flows Screenshot](screenshot.png)
 
 ## Deploy Your Own
 
-You can deploy your own version of the workflow builder to Vercel with one click:
+You can deploy your own instance of Alecia Flows to Vercel with one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.new/workflow-builder)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/alecia-flows/alecia-flows)
 
 **What happens during deployment:**
 
@@ -232,7 +232,7 @@ Examples:
 
 ## About Workflow DevKit
 
-This template is built on top of Workflow DevKit, a powerful workflow execution engine that enables:
+Alecia Flows is built on top of Workflow DevKit, a powerful workflow execution engine that enables:
 
 - Native TypeScript workflow definitions with `"use workflow"` directive
 - Type-safe workflow execution
@@ -241,6 +241,44 @@ This template is built on top of Workflow DevKit, a powerful workflow execution 
 - Serverless deployment support
 
 Learn more about Workflow DevKit at [useworkflow.dev](https://useworkflow.dev)
+
+## Deployment Checklist
+
+Before deploying to production, ensure all required environment variables are configured.
+
+### Required
+
+| Variable | Description |
+|---|---|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `BETTER_AUTH_SECRET` | Secret key for Better Auth session signing |
+
+### Recommended
+
+| Variable | Description |
+|---|---|
+| `BETTER_AUTH_URL` | Public URL of your deployment (e.g. `https://your-app.vercel.app`) |
+| `AI_GATEWAY_API_KEY` | OpenAI or AI Gateway API key for workflow generation |
+| `ENCRYPTION_KEY` | Key used to encrypt stored integration credentials |
+
+### Optional
+
+| Variable | Description |
+|---|---|
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Enable GitHub OAuth sign-in |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Enable Google OAuth sign-in |
+| `VERCEL_CLIENT_ID` / `VERCEL_CLIENT_SECRET` | Enable Vercel OAuth integration |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Enable Redis-backed rate limiting |
+| `ADMIN_EMAILS` | Comma-separated list of admin email addresses for bootstrapping admin access |
+| `ALLOWED_WEBHOOK_ORIGIN` | Restrict webhook CORS to a specific origin |
+
+### Setup Steps
+
+1. Set all required environment variables in your hosting provider.
+2. Run `pnpm db:push` (or `pnpm db:migrate`) to apply the database schema.
+3. Run `pnpm discover-plugins` to generate the plugin registry.
+4. Build and deploy with `pnpm build`.
+5. Visit `/admin` with an `ADMIN_EMAILS`-listed account to configure the platform.
 
 ## License
 

@@ -17,6 +17,9 @@ import { triggerStep } from "./steps/trigger";
 import { getErrorMessageAsync } from "./utils";
 import type { WorkflowEdge, WorkflowNode } from "./workflow-store";
 
+export const DEFAULT_STEP_TIMEOUT_MS = 30_000; // 30 seconds
+export const DEFAULT_WORKFLOW_TIMEOUT_MS = 300_000; // 5 minutes
+
 // System actions that don't have plugins - maps to module import functions
 const SYSTEM_ACTIONS: Record<string, StepImporter> = {
   "Database Query": {

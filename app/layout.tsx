@@ -17,9 +17,9 @@ import { mono, sans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Alecia Flows - Automatisation des processus",
+  title: "Alecia Flows",
   description:
-    "Automatisez vos processus M&A avec une plateforme visuelle basée sur des nœuds. Gérez vos workflows d'automatisation de manière efficace.",
+    "Build, automate, and deploy intelligent workflows with a visual node-based platform.",
 };
 
 export const viewport: Viewport = {
@@ -45,7 +45,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => (
-  <html lang="fr" suppressHydrationWarning>
+  <html lang="en" suppressHydrationWarning>
     <body className={cn(sans.variable, mono.variable, "antialiased")}>
       <ThemeProvider
         attribute="class"
