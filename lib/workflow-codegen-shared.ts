@@ -175,6 +175,32 @@ export function escapeForTemplateLiteral(str: string): string {
 }
 
 /**
+ * Escape a string for safe use inside single-quoted string literals
+ * Escapes backslashes first, then single quotes
+ */
+export function escapeForSingleQuote(str: string): string {
+  if (!str) {
+    return "";
+  }
+  return str
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/'/g, "\\'"); // Escape single quotes
+}
+
+/**
+ * Escape a string for safe use inside double-quoted string literals
+ * Escapes backslashes first, then double quotes
+ */
+export function escapeForDoubleQuote(str: string): string {
+  if (!str) {
+    return "";
+  }
+  return str
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/"/g, '\\"'); // Escape double quotes
+}
+
+/**
  * Sanitize a function name
  */
 export function sanitizeFunctionName(name: string): string {
