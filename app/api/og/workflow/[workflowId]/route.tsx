@@ -105,14 +105,14 @@ export async function GET(
   try {
     const { workflowId } = await context.params;
 
-    // Get base URL from request
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-
     // Fetch workflow via internal API (works in edge runtime)
-    const response = await fetch(`${baseUrl}/api/workflows/${workflowId}`, {
-      headers: {},
-    });
+    const origin = process.env.APP_URL || "http://localhost:3000";
+    const response = await fetch(
+      `${origin}/api/workflows/${encodeURIComponent(workflowId)}`,
+      {
+        headers: {},
+      }
+    );
 
     if (!response.ok) {
       if (response.status === 404) {
