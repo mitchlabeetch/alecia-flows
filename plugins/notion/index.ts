@@ -13,12 +13,12 @@ const notionPlugin: IntegrationPlugin = {
   formFields: [
     {
       id: "apiKey",
-      label: "Clé API Notion",
+      label: "Notion API Key",
       type: "password",
       placeholder: "secret_...",
       configKey: "apiKey",
       envVar: "NOTION_API_KEY",
-      helpText: "Créez une intégration sur ",
+      helpText: "Create an integration at ",
       helpLink: {
         text: "notion.so/my-integrations",
         url: "https://www.notion.so/my-integrations",
@@ -49,28 +49,28 @@ const notionPlugin: IntegrationPlugin = {
       configFields: [
         {
           key: "parentId",
-          label: "ID de la page parente",
+          label: "Parent Page ID",
           type: "template-input",
-          placeholder: "ID de la page ou base de données parente",
+          placeholder: "Parent page or database ID",
           example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
           required: true,
         },
         {
           key: "title",
-          label: "Titre",
+          label: "Title",
           type: "template-input",
-          placeholder: "Dossier {{Deal.title}}",
-          example: "Dossier Acquisition XYZ",
+          placeholder: "Folder {{Deal.title}}",
+          example: "Acquisition XYZ Folder",
           required: true,
         },
         {
           key: "content",
-          label: "Contenu (texte simple)",
+          label: "Content (plain text)",
           type: "template-textarea",
           placeholder:
-            "Description du dossier...\n\nPoints clés :\n- {{Deal.keyPoint1}}",
+            "Folder description...\n\nKey points:\n- {{Deal.keyPoint1}}",
           rows: 6,
-          example: "Analyse préliminaire du dossier d'acquisition.",
+          example: "Preliminary analysis of the acquisition deal.",
         },
       ],
     },
@@ -88,7 +88,7 @@ const notionPlugin: IntegrationPlugin = {
       configFields: [
         {
           key: "databaseId",
-          label: "ID de la base de données",
+          label: "Database ID",
           type: "template-input",
           placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
           example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -96,13 +96,13 @@ const notionPlugin: IntegrationPlugin = {
         },
         {
           key: "properties",
-          label: "Propriétés (JSON)",
+          label: "Properties (JSON)",
           type: "template-textarea",
           placeholder:
-            '{"Nom": {"title": [{"text": {"content": "{{Deal.title}}"}}]}, "Statut": {"select": {"name": "En cours"}}}',
+            '{"Name": {"title": [{"text": {"content": "{{Deal.title}}"}}]}, "Status": {"select": {"name": "In progress"}}}',
           rows: 8,
           example:
-            '{"Nom": {"title": [{"text": {"content": "Acquisition XYZ"}}]}}',
+            '{"Name": {"title": [{"text": {"content": "Acquisition XYZ"}}]}}',
           required: true,
         },
       ],
@@ -121,7 +121,7 @@ const notionPlugin: IntegrationPlugin = {
       configFields: [
         {
           key: "query",
-          label: "Requête de recherche",
+          label: "Search query",
           type: "template-input",
           placeholder: "{{Deal.title}}",
           example: "Acquisition",
@@ -129,11 +129,11 @@ const notionPlugin: IntegrationPlugin = {
         },
         {
           key: "filterType",
-          label: "Type de résultat",
+          label: "Result type",
           type: "select",
           options: [
             { value: "page", label: "Pages" },
-            { value: "database", label: "Bases de données" },
+            { value: "database", label: "Databases" },
           ],
           defaultValue: "page",
         },
@@ -152,7 +152,7 @@ const notionPlugin: IntegrationPlugin = {
       configFields: [
         {
           key: "pageId",
-          label: "ID de la page",
+          label: "Page ID",
           type: "template-input",
           placeholder: "{{CreatePage.id}}",
           example: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
@@ -160,13 +160,13 @@ const notionPlugin: IntegrationPlugin = {
         },
         {
           key: "content",
-          label: "Contenu à ajouter",
+          label: "Content to append",
           type: "template-textarea",
           placeholder:
-            "Texte à ajouter à la page...\n\nPour les listes, commencez par - ",
+            "Text to add to the page...\n\nFor lists, start with - ",
           rows: 6,
           example:
-            "Mise à jour du dossier:\n- Réunion effectuée\n- Documents reçus",
+            "Deal update:\n- Follow-up call completed\n- Documents received",
           required: true,
         },
       ],

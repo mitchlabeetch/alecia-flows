@@ -2,7 +2,9 @@ import { findActionById } from "@/plugins";
 import type { WorkflowEdge, WorkflowNode } from "./workflow-store";
 
 // Regex patterns at top level for performance
-export const TEMPLATE_PATTERN = /\{\{([^}]+)\}\}/g;
+// Note: TEMPLATE_PATTERN has no global flag to avoid shared lastIndex state across callers.
+// Use String.prototype.matchAll with a fresh regex when iterating all matches.
+export const TEMPLATE_PATTERN = /\{\{([^}]+)\}\}/;
 export const WHITESPACE_PATTERN = /\s+/;
 export const NON_ALPHANUMERIC_PATTERN = /[^a-zA-Z0-9]/g;
 export const ARRAY_INDEX_PATTERN = /^([^[]+)\[(\d+)\]$/;
@@ -18,9 +20,7 @@ export function findNodeReferences(template: string): Set<string> {
     return refs;
   }
 
-  let match: RegExpExecArray | null;
-  // biome-ignore lint/suspicious/noAssignInExpressions: pattern.exec() is the standard way to iterate regex matches
-  while ((match = TEMPLATE_PATTERN.exec(template)) !== null) {
+  for (const match of template.matchAll(/\{\{([^}]+)\}\}/g)) {
     const expression = match[1].trim();
 
     // Handle @nodeId:DisplayName.field format

@@ -42,11 +42,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(keys);
   } catch (error) {
-    console.error("Failed to list API keys:", error);
-    return NextResponse.json(
-      { error: "Failed to list API keys" },
-      { status: 500 }
-    );
+    return internalServerError("GET /api/api-keys", error);
   }
 }
 
