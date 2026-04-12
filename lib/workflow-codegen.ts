@@ -4,11 +4,13 @@ import {
   buildAccessPath,
   getStepInfo,
   removeInvisibleChars,
-  TEMPLATE_PATTERN,
   toFriendlyVarName,
   toTypeScriptLiteral,
 } from "./workflow-codegen-shared";
 import type { WorkflowEdge, WorkflowNode } from "./workflow-store";
+
+// Local regex with global flag for replace-all operations within this module
+const TEMPLATE_PATTERN_GLOBAL = /\{\{([^}]+)\}\}/g;
 
 type CodeGenOptions = {
   functionName?: string;
@@ -205,7 +207,7 @@ export function generateWorkflowCode(
       return template;
     }
 
-    return template.replace(TEMPLATE_PATTERN, (match, expression) => {
+    return template.replace(TEMPLATE_PATTERN_GLOBAL, (match, expression) => {
       const trimmed = expression.trim();
 
       if (trimmed.startsWith("@")) {
@@ -230,19 +232,22 @@ export function generateWorkflowCode(
     const cleaned = removeInvisibleChars(condition);
 
     // Then convert template references
-    const converted = cleaned.replace(TEMPLATE_PATTERN, (match, expression) => {
-      const trimmed = expression.trim();
+    const converted = cleaned.replace(
+      TEMPLATE_PATTERN_GLOBAL,
+      (match, expression) => {
+        const trimmed = expression.trim();
 
-      if (trimmed.startsWith("@")) {
-        return processAtFormatForExpression(trimmed, match);
+        if (trimmed.startsWith("@")) {
+          return processAtFormatForExpression(trimmed, match);
+        }
+
+        if (trimmed.startsWith("$")) {
+          return processDollarFormatForExpression(trimmed, match);
+        }
+
+        return match;
       }
-
-      if (trimmed.startsWith("$")) {
-        return processDollarFormatForExpression(trimmed, match);
-      }
-
-      return match;
-    });
+    );
 
     // Final cleanup to ensure no non-breaking spaces remain
     return removeInvisibleChars(converted);

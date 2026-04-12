@@ -3,6 +3,7 @@ import { isAiGatewayManagedKeysEnabled } from "@/lib/ai-gateway/config";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { accounts } from "@/lib/db/schema";
+import { logger } from "@/lib/logger";
 
 export type VercelTeam = {
   id: string;
@@ -113,7 +114,7 @@ export async function GET(request: Request) {
 
     return Response.json({ teams: sortedTeams });
   } catch (e) {
-    console.error("[ai-gateway] Error fetching teams:", e);
+    logger.error("[ai-gateway] Error fetching teams", e);
     return Response.json({ error: "Failed to fetch teams" }, { status: 500 });
   }
 }

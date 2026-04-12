@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { internalServerError } from "@/lib/api/errors";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { workflowExecutionLogs, workflowExecutions } from "@/lib/db/schema";
@@ -59,15 +60,9 @@ export async function GET(
       nodeStatuses,
     });
   } catch (error) {
-    console.error("Failed to get execution status:", error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Failed to get execution status",
-      },
-      { status: 500 }
+    return internalServerError(
+      "GET /api/workflows/executions/[executionId]/status",
+      error
     );
   }
 }
