@@ -2,6 +2,9 @@ import { findActionById, flattenConfigFields } from "@/plugins";
 import {
   analyzeNodeUsage,
   buildAccessPath,
+  escapeForDoubleQuote,
+  escapeForSingleQuote,
+  escapeForTemplateLiteral,
   getStepInfo,
   removeInvisibleChars,
   toFriendlyVarName,
@@ -276,19 +279,16 @@ export function generateWorkflowCode(
     // Check if template references are used (converted string contains ${)
     const hasTemplateRefs = (str: string) => str.includes("${");
 
-    // Escape template expressions for the outer template literal (use $$ to escape $)
-    const escapeForOuterTemplate = (str: string) => str.replace(/\$\{/g, "$${");
-
     // Build values - use template literals if references exist, otherwise use string literals
     const emailToValue = hasTemplateRefs(convertedEmailTo)
-      ? `\`${escapeForOuterTemplate(convertedEmailTo).replace(/`/g, "\\`")}\``
-      : `'${emailTo.replace(/'/g, "\\'")}'`;
+      ? `\`${escapeForTemplateLiteral(convertedEmailTo)}\``
+      : `'${escapeForSingleQuote(emailTo)}'`;
     const subjectValue = hasTemplateRefs(convertedSubject)
-      ? `\`${escapeForOuterTemplate(convertedSubject).replace(/`/g, "\\`")}\``
-      : `'${emailSubject.replace(/'/g, "\\'")}'`;
+      ? `\`${escapeForTemplateLiteral(convertedSubject)}\``
+      : `'${escapeForSingleQuote(emailSubject)}'`;
     const bodyValue = hasTemplateRefs(convertedBody)
-      ? `\`${escapeForOuterTemplate(convertedBody).replace(/`/g, "\\`")}\``
-      : `'${emailBody.replace(/'/g, "\\'")}'`;
+      ? `\`${escapeForTemplateLiteral(convertedBody)}\``
+      : `'${escapeForSingleQuote(emailBody)}'`;
 
     return [
       `${indent}const ${varName} = await ${stepInfo.functionName}({`,
@@ -316,14 +316,13 @@ export function generateWorkflowCode(
     const convertedTitle = convertTemplateToJS(ticketTitle);
     const convertedDescription = convertTemplateToJS(ticketDescription);
     const hasTemplateRefs = (str: string) => str.includes("${");
-    const escapeForOuterTemplate = (str: string) => str.replace(/\$\{/g, "$${");
 
     const titleValue = hasTemplateRefs(convertedTitle)
-      ? `\`${escapeForOuterTemplate(convertedTitle).replace(/`/g, "\\`")}\``
-      : `'${ticketTitle.replace(/'/g, "\\'")}'`;
+      ? `\`${escapeForTemplateLiteral(convertedTitle)}\``
+      : `'${escapeForSingleQuote(ticketTitle)}'`;
     const descValue = hasTemplateRefs(convertedDescription)
-      ? `\`${escapeForOuterTemplate(convertedDescription).replace(/`/g, "\\`")}\``
-      : `'${ticketDescription.replace(/'/g, "\\'")}'`;
+      ? `\`${escapeForTemplateLiteral(convertedDescription)}\``
+      : `'${escapeForSingleQuote(ticketDescription)}'`;
 
     return [
       `${indent}const ${varName} = await ${stepInfo.functionName}({`,
@@ -368,12 +367,9 @@ export function generateWorkflowCode(
       const convertedQuery = convertTemplateToJS(dbQuery);
       const hasTemplateRefs = convertedQuery.includes("${");
 
-      // Escape backticks and template literal syntax for SQL query
-      const escapeForOuterTemplate = (str: string) =>
-        str.replace(/\$\{/g, "$${");
       const queryValue = hasTemplateRefs
-        ? `\`${escapeForOuterTemplate(convertedQuery).replace(/`/g, "\\`")}\``
-        : `\`${dbQuery.replace(/`/g, "\\`")}\``;
+        ? `\`${escapeForTemplateLiteral(convertedQuery)}\``
+        : `\`${escapeForTemplateLiteral(dbQuery)}\``;
 
       lines.push(`${indent}  query: ${queryValue},`);
     } else {
@@ -435,12 +431,11 @@ export function generateWorkflowCode(
   function generatePromptValue(aiPrompt: string): string {
     const convertedPrompt = convertTemplateToJS(aiPrompt);
     const hasTemplateRefs = convertedPrompt.includes("${");
-    const escapeForOuterTemplate = (str: string) => str.replace(/\$\{/g, "$${");
 
     if (hasTemplateRefs) {
-      return `\`${escapeForOuterTemplate(convertedPrompt).replace(/`/g, "\\`")}\``;
+      return `\`${escapeForTemplateLiteral(convertedPrompt)}\``;
     }
-    return `\`${aiPrompt.replace(/`/g, "\\`")}\``;
+    return `\`${escapeForTemplateLiteral(aiPrompt)}\``;
   }
 
   function generateAiTextActionCode(
@@ -520,14 +515,13 @@ export function generateWorkflowCode(
     const convertedChannel = convertTemplateToJS(slackChannel);
     const convertedMessage = convertTemplateToJS(slackMessage);
     const hasTemplateRefs = (str: string) => str.includes("${");
-    const escapeForOuterTemplate = (str: string) => str.replace(/\$\{/g, "$${");
 
     const channelValue = hasTemplateRefs(convertedChannel)
-      ? `\`${escapeForOuterTemplate(convertedChannel).replace(/`/g, "\\`")}\``
-      : `"${slackChannel}"`;
+      ? `\`${escapeForTemplateLiteral(convertedChannel)}\``
+      : `"${escapeForDoubleQuote(slackChannel)}"`;
     const messageValue = hasTemplateRefs(convertedMessage)
-      ? `\`${escapeForOuterTemplate(convertedMessage).replace(/`/g, "\\`")}\``
-      : `"${slackMessage}"`;
+      ? `\`${escapeForTemplateLiteral(convertedMessage)}\``
+      : `"${escapeForDoubleQuote(slackMessage)}"`;
 
     return [
       `${indent}const ${varName} = await ${stepInfo.functionName}({`,
@@ -540,10 +534,9 @@ export function generateWorkflowCode(
   function formatTemplateValue(value: string): string {
     const converted = convertTemplateToJS(value);
     const hasTemplateRefs = converted.includes("${");
-    const escaped = converted.replace(/\$\{/g, "$${").replace(/`/g, "\\`");
     return hasTemplateRefs
-      ? `\`${escaped}\``
-      : `\`${value.replace(/`/g, "\\`")}\``;
+      ? `\`${escapeForTemplateLiteral(converted)}\``
+      : `\`${escapeForTemplateLiteral(value)}\``;
   }
 
   function generateFirecrawlActionCode(

@@ -175,6 +175,34 @@ export function escapeForTemplateLiteral(str: string): string {
 }
 
 /**
+ * Safely escapes a string for use within single-quoted JavaScript string literals
+ */
+export function escapeForSingleQuote(str: string): string {
+  if (!str) {
+    return "";
+  }
+  return str
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/'/g, "\\'") // Escape single quotes
+    .replace(/\n/g, "\\n") // Escape newlines
+    .replace(/\r/g, "\\r"); // Escape carriage returns
+}
+
+/**
+ * Safely escapes a string for use within double-quoted JavaScript string literals
+ */
+export function escapeForDoubleQuote(str: string): string {
+  if (!str) {
+    return "";
+  }
+  return str
+    .replace(/\\/g, "\\\\") // Escape backslashes first
+    .replace(/"/g, '\\"') // Escape double quotes
+    .replace(/\n/g, "\\n") // Escape newlines
+    .replace(/\r/g, "\\r"); // Escape carriage returns
+}
+
+/**
  * Sanitize a function name
  */
 export function sanitizeFunctionName(name: string): string {
