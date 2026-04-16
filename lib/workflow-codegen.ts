@@ -373,7 +373,7 @@ export function generateWorkflowCode(
       const escapeForOuterTemplate = (str: string) =>
         str.replace(/\$\{/g, "$${");
       const queryValue = hasTemplateRefs
-        ? `\`${escapeForOuterTemplate(convertedQuery).replace(/\\/g, "\\\\").replace(/`/g, "\\`")}\``
+        ? `\`${escapeForTemplateLiteral(escapeForOuterTemplate(convertedQuery))}\``
         : `\`${escapeForTemplateLiteral(dbQuery)}\``;
 
       lines.push(`${indent}  query: ${queryValue},`);
